@@ -1,0 +1,220 @@
+/* Tailwind v4 */
+@import 'tailwindcss';
+
+/* ——— 테마 변수 정의 ——— */
+@layer theme {
+    :root {
+        /* 컬러 */
+        --color-black: #111;
+        --color-description: #666;
+        --color-discount: #ec0040;
+        --color-border: #e5e5e5;
+        --color-disable: #929292;
+        --color-accent: #640faf;
+
+        /* 폰트 사이즈 (기본) */
+        --font-size-xs: 0.75rem;
+        --font-size-sm: 0.875rem;
+        --font-size-base: 1rem;
+        --font-size-lg: 1.125rem;
+        --font-size-xl: 1.25rem;
+        --font-size-2xl: 1.375rem;
+        --font-size-3xl: 1.75rem;
+        --font-size-4xl: 2.25rem;
+    }
+
+    @media (min-width: 768px) {
+        :root {
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.375rem;
+            --font-size-2xl: 1.75rem;
+            --font-size-3xl: 2.25rem;
+            --font-size-4xl: 3rem;
+        }
+    }
+}
+
+/**
+ * ——— 테마 변수 자동 유틸리티 생성 ———
+ * 테마 변수를 자동으로 유틸리티 클래스로 변환합니다.
+ */
+@theme {
+    /* 폰트 페밀리 */
+    --font-sans: 'Pretendard', 'NanumBarunGothic', 'Malgun Gothic', Arial, sans-serif;
+    --font-num: Arial, Tahomas, sans-serif;
+
+    /* 컬러 매핑 */
+    --color-black: var(--color-black);
+    --color-description: var(--color-description);
+    --color-discount: var(--color-discount);
+    --color-border: var(--color-border);
+    --color-disable: var(--color-disable);
+    --color-accent: var(--color-accent);
+
+    /* 폰트 사이즈 매핑 */
+    /* --text-xs: var(--font-size-xs);
+    --text-sm: var(--font-size-sm);
+    --text-base: var(--font-size-base);
+    --text-lg: var(--font-size-lg);
+    --text-xl: var(--font-size-xl);
+    --text-2xl: var(--font-size-2xl);
+    --text-3xl: var(--font-size-3xl);
+    --text-4xl: var(--font-size-4xl); */
+
+    /* 행간 매핑 */
+    --spacing-sm: 1.25; /* 로고 여백 */
+    --spacing-base: 1.5; /* 헤더 여백 */
+    --spacing-lg: 1.75; /* 본문 여백 */
+}
+
+/* ——— 글로벌 스타일 (베이스 레이어) ——— */
+@layer base {
+    @font-face {
+        font-family: 'Pretendard';
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/pretendard/Pretendard-Regular.woff2') format('woff2');
+    }
+    @font-face {
+        font-family: 'Pretendard';
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/pretendard/Pretendard-SemiBold.woff2') format('woff2');
+    }
+    @font-face {
+        font-family: 'Pretendard';
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fonts/pretendard/Pretendard-Bold.woff2') format('woff2');
+    }
+    @font-face {
+        font-family: 'NanumBarunGothic';
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/nanum-barun-gothic/NanumBarunGothic.ttf') format('truetype');
+    }
+    @font-face {
+        font-family: 'NanumBarunGothic';
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fonts/nanum-barun-gothic/NanumBarunGothicBold.ttf') format('truetype');
+    }
+
+    html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        @apply text-black font-sans text-base tracking-tighter overflow-x-hidden;
+    }
+
+    button {
+        cursor: pointer;
+    }
+}
+
+/**
+ * ——— 사용자 정의 컴포넌트 스타일 (재사용 요소) ———
+ * 버튼, 카드, 모달 등 재사용 UI 컴포넌트를 정의할 때 사용합니다.
+ */
+@layer components {
+    /* 메인 스와이퍼 페이지네이션 및 네비게이션 커스텀 */
+    .poj2-main-slider .swiper-pagination-progressbar.swiper-pagination-horizontal {
+        position: relative !important;
+        height: 2px !important;
+        background-color: var(--color-border) !important;
+    }
+    .poj2-main-slider .swiper-pagination-progressbar-fill {
+        background-color: var(--color-black) !important;
+    }
+}
+
+/**
+ * ——— 사용자 정의 유틸리티 클래스 ———
+ * Tailwind에서 제공하지 않는 단일 or 특수 스타일을 정의할 때 사용합니다.
+ */
+@layer utilities {
+    .poj2-global-wrapper {
+        width: 100%;
+        max-width: 1180px;
+        margin: 0 auto;
+        @apply px-4 lg:px-5;
+    }
+
+    .poj2-no-scrollbar {
+        scrollbar-width: none; /* Firefox */
+    }
+    .poj2-no-scrollbar::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, and Opera */
+    }
+    .poj2-no-scrollbar::-webkit-scrollbar-thumb {
+        background-color: transparent; /* Chrome, Safari, and Opera */
+    }
+    .poj2-no-scrollbar::-webkit-scrollbar-track {
+        background-color: transparent; /* Chrome, Safari, and Opera */
+    }
+
+    .poj2-auto-divider:not(:last-child)::after {
+        content: '|';
+        margin: 0 1rem;
+        color: inherit;
+    }
+
+    /* 호버 언더라인 효과 */
+    .poj2-hover-underline {
+        position: relative;
+        display: inline-block;
+        overflow: hidden;
+    }
+
+    .poj2-hover-underline::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 1px;
+        width: 100%;
+        background: currentColor;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    /* 자기 자신이 hover 되었을 때 */
+    .poj2-hover-underline:hover::after,
+/* 부모 중 .poj2-hover-underline-group이 hover 되었을 때 */
+.poj2-hover-underline-group:hover .poj2-hover-underline::after,
+/* 이전 형제 .poj2-hover-underline-peer가 hover 되었을 때 */
+.poj2-hover-underline-peer:hover + .poj2-hover-underline::after {
+        transform: scaleX(1);
+    }
+
+    .poj2-line-clamp-1 {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
+    }
+
+    .poj2-line-clamp-2 {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .poj2-line-clamp-3 {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+    }
+
+    @media (max-width: 1023px) {
+        .poj2-auto-divider:not(:last-child)::after {
+            display: none;
+        }
+    }
+}
