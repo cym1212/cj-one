@@ -11,127 +11,203 @@
 </head>
 <body class="bg-gray-50">
     <div class="container mx-auto py-8">
-        <div id="recommend-service-root"></div>
+        <h1 class="text-2xl font-bold text-center mb-8">RecommendService 테스트</h1>
+        
+        <!-- 기본 테스트 -->
+        <div class="mb-12">
+            <h2 class="text-lg font-semibold mb-4">1. 기본 독립 모드 테스트</h2>
+            <div id="recommend-service-standalone"></div>
+        </div>
+        
+        <!-- ComponentSkinProps 구조 테스트 -->
+        <div class="mb-12">
+            <h2 class="text-lg font-semibold mb-4">2. ComponentSkinProps 구조 테스트</h2>
+            <div id="recommend-service-webbuilder"></div>
+        </div>
+        
+        <!-- 에디터 모드 테스트 -->
+        <div class="mb-12">
+            <h2 class="text-lg font-semibold mb-4">3. 에디터 모드 테스트</h2>
+            <div id="recommend-service-editor"></div>
+        </div>
+        
+        <!-- 빈 데이터 테스트 (DEFAULT_SERVICES 확인용) -->
+        <div class="mb-12">
+            <h2 class="text-lg font-semibold mb-4">4. 빈 데이터 테스트 (DEFAULT_SERVICES 표시 확인)</h2>
+            <div id="recommend-service-empty"></div>
+        </div>
     </div>
 
-    <script type="module">
-        // 실제 이미지 데이터
+    <!-- 빌드된 UMD 파일 로드 -->
+    <script src="./../../dist/recommend-service/poj2-recommend-service.umd.js"></script>
+    
+    <script>
+        console.log('Poj2RecommendService:', window.Poj2RecommendService);
+        
+        // 외부 데이터 연결 확인용 테스트 서비스 데이터 (DEFAULT_SERVICES와 다르게 설정)
         const testServices = [
             {
-                id: '1',
-                title: '멤버십 혜택',
-                iconUrl: './../../public/images/icon/membership.png',
-                linkUrl: '/',
-                alt: '멤버십혜택'
+                id: 'external-1',
+                title: '🔥 외부 데이터 - 특별혜택',
+                iconUrl: 'https://via.placeholder.com/80x80/ff6b6b/ffffff?text=EXT1',
+                linkUrl: 'https://google.com',
+                alt: '외부 데이터 특별혜택'
             },
             {
-                id: '2',
-                title: '출석체크',
-                iconUrl: './../../public/images/icon/attendance-check.png',
-                linkUrl: '/',
-                alt: '출석체크'
+                id: 'external-2',
+                title: '⭐ 외부 데이터 - 리워드',
+                iconUrl: 'https://via.placeholder.com/80x80/4ecdc4/ffffff?text=EXT2',
+                linkUrl: 'https://google.com',
+                alt: '외부 데이터 리워드'
             },
             {
-                id: '3',
-                title: '혜택',
-                iconUrl: './../../public/images/icon/coupon.png',
-                linkUrl: '/benefits',
-                alt: '혜택'
+                id: 'external-3',
+                title: '💎 외부 데이터 - 프리미엄',
+                iconUrl: 'https://via.placeholder.com/80x80/45b7d1/ffffff?text=EXT3',
+                linkUrl: 'https://google.com',
+                alt: '외부 데이터 프리미엄'
             },
             {
-                id: '4',
-                title: '체험단',
-                iconUrl: './../../public/images/icon/review-group.png',
-                linkUrl: '/review-group',
-                alt: '체험단'
+                id: 'external-4',
+                title: '🎁 외부 데이터 - 이벤트',
+                iconUrl: 'https://via.placeholder.com/80x80/f9ca24/ffffff?text=EXT4',
+                linkUrl: 'https://google.com',
+                alt: '외부 데이터 이벤트'
             },
             {
-                id: '5',
-                title: '백화점',
-                iconUrl: './../../public/images/icon/department-store.png',
-                linkUrl: '/specialty-shop/department-store',
-                alt: '백화점'
+                id: 'external-5',
+                title: '🛍️ 외부 데이터 - 쇼핑',
+                iconUrl: 'https://via.placeholder.com/80x80/6c5ce7/ffffff?text=EXT5',
+                linkUrl: 'https://google.com',
+                alt: '외부 데이터 쇼핑'
             }
         ];
 
-        // RecommendService 컴포넌트
-        const RecommendService = (props = {}) => {
-            const data = {
-                title: 'CJ온스타일 추천 서비스',
-                services: props.services || testServices,
-                className: props.className,
-                style: props.style
-            };
-
-            React.useEffect(() => {
-                if (typeof window !== 'undefined' && !document.querySelector('script[src*="cdn.tailwindcss.com"]')) {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.tailwindcss.com';
-                    script.async = true;
-                    document.head.appendChild(script);
-                }
-            }, []);
-
-            const handleServiceClick = (service) => {
-                console.log('Navigate to:', service.linkUrl);
-                alert(`클릭: ${service.title} -> ${service.linkUrl}`);
-            };
-
-            return React.createElement('section', {
-                className: `poj2-global-wrapper pb-15 lg:pb-30 ${data.className || ''}`,
-                style: data.style
-            }, [
-                React.createElement('div', {
-                    key: 'title',
-                    className: 'text-center mb-8 lg:mb-12'
-                }, [
-                    React.createElement('h2', {
-                        key: 'h2',
-                        className: 'text-xl lg:text-2xl font-bold'
-                    }, data.title)
-                ]),
-                React.createElement('ul', {
-                    key: 'services',
-                    className: 'poj2-recommend-service overflow-x-auto flex items-center min-[907px]:justify-center gap-4 lg:gap-8'
-                }, data.services.map((service) => 
-                    React.createElement('li', {
-                        key: service.id
-                    }, [
-                        React.createElement('a', {
-                            key: 'link',
-                            href: service.linkUrl,
-                            className: 'block',
-                            onClick: (e) => {
-                                e.preventDefault();
-                                handleServiceClick(service);
-                            }
-                        }, [
-                            React.createElement('div', {
-                                key: 'content',
-                                className: 'w-18 lg:w-24 text-center space-y-1 lg:space-y-2'
-                            }, [
-                                React.createElement('img', {
-                                    key: 'img',
-                                    src: service.iconUrl,
-                                    alt: service.alt,
-                                    className: 'w-full h-auto rounded-lg'
-                                }),
-                                React.createElement('p', {
-                                    key: 'text',
-                                    className: 'text-xs lg:text-base'
-                                }, service.title)
-                            ])
-                        ])
-                    ])
-                ))
-            ]);
-        };
-
-        // 렌더링
-        const root = ReactDOM.createRoot(document.getElementById('recommend-service-root'));
-        root.render(React.createElement(RecommendService, {
+        // 1. 기본 독립 모드 테스트
+        const root1 = ReactDOM.createRoot(document.getElementById('recommend-service-standalone'));
+        root1.render(React.createElement(window.Poj2RecommendService, {
+            title: '독립 모드 테스트',
+            subtitle: '기본 props로 실행',
             services: testServices
         }));
+
+        // 2. ComponentSkinProps 구조 테스트
+        const webbuilderData = {
+            id: 'recommend-service-webbuilder-test',
+            title: 'ComponentSkinProps 테스트',
+            subtitle: '웹빌더 환경 시뮬레이션',
+            services: testServices,
+            is_logged: true,
+            is_not_logged: true,
+            hoveredItemId: null,
+            componentUniqueId: 'test-unique-id'
+        };
+
+        const webbuilderActions = {
+            handleServiceClick: (service, e) => {
+                console.log('웹빌더 클릭:', service);
+                alert(`웹빌더 모드 클릭: ${service.title} -> ${service.linkUrl}`);
+            },
+            handleServiceHover: (serviceId) => {
+                console.log('호버:', serviceId);
+                // 실제로 상태를 업데이트하려면 useState 등이 필요하지만 테스트용으로는 콘솔만
+            },
+            isValidUrl: (url) => {
+                return url && url !== '#';
+            },
+            translate: (text) => {
+                return `[번역] ${text}`;
+            }
+        };
+
+        const webbuilderUtils = {
+            t: (key) => `[번역] ${key}`,
+            navigate: (path) => {
+                console.log('Navigate to:', path);
+                alert(`Navigate to: ${path}`);
+            },
+            formatCurrency: (amount) => `₩${amount.toLocaleString()}`,
+            formatDate: (date) => date.toLocaleDateString('ko-KR'),
+            getAssetUrl: (path) => `https://cdn.example.com${path}`,
+            cx: (...classes) => classes.filter(Boolean).join(' ')
+        };
+
+        const webbuilderApp = {
+            user: { id: 'test-user', name: 'Test User' },
+            company: { id: 'test-company', name: 'Test Company' },
+            currentLanguage: 'ko',
+            theme: { primaryColor: '#007bff' }
+        };
+
+        const root2 = ReactDOM.createRoot(document.getElementById('recommend-service-webbuilder'));
+        root2.render(React.createElement(window.Poj2RecommendService, {
+            data: webbuilderData,
+            actions: webbuilderActions,
+            utils: webbuilderUtils,
+            app: webbuilderApp,
+            mode: 'production',
+            options: {}
+        }));
+
+        // 3. 에디터 모드 테스트
+        const editorData = {
+            ...webbuilderData,
+            title: '에디터 모드 테스트',
+            subtitle: '클릭이 비활성화됨'
+        };
+
+        const editorActions = {
+            ...webbuilderActions,
+            handleServiceClick: (service, e) => {
+                console.log('에디터 모드 - 클릭 비활성화:', service);
+                // 에디터 모드에서는 실제로 클릭이 동작하지 않아야 함
+            }
+        };
+
+        const editorProps = {
+            isSelected: true,
+            onSelect: () => console.log('컴포넌트 선택됨'),
+            onEdit: () => console.log('편집 모드 진입'),
+            onDelete: () => console.log('컴포넌트 삭제')
+        };
+
+        const root3 = ReactDOM.createRoot(document.getElementById('recommend-service-editor'));
+        root3.render(React.createElement(window.Poj2RecommendService, {
+            data: editorData,
+            actions: editorActions,
+            utils: webbuilderUtils,
+            app: webbuilderApp,
+            mode: 'editor',
+            editor: editorProps,
+            options: {}
+        }));
+
+        // 4. 빈 데이터 테스트 (DEFAULT_SERVICES 표시 확인)
+        const emptyData = {
+            id: 'recommend-service-empty-test',
+            title: '빈 데이터 테스트 - DEFAULT_SERVICES 표시',
+            subtitle: '외부 데이터 없음',
+            services: [], // 빈 배열 - DEFAULT_SERVICES가 표시되어야 함
+            is_logged: true,
+            is_not_logged: true
+        };
+
+        const root4 = ReactDOM.createRoot(document.getElementById('recommend-service-empty'));
+        root4.render(React.createElement(window.Poj2RecommendService, {
+            data: emptyData,
+            actions: webbuilderActions,
+            utils: webbuilderUtils,
+            app: webbuilderApp,
+            mode: 'production',
+            options: {}
+        }));
+
+        console.log('모든 테스트 컴포넌트가 렌더링되었습니다.');
+        console.log('외부 데이터 vs 기본 데이터 비교:');
+        console.log('- 1번: 독립 모드 (외부 testServices 5개)');
+        console.log('- 2번: 웹빌더 모드 (외부 testServices 5개)'); 
+        console.log('- 3번: 에디터 모드 (외부 testServices 5개)');
+        console.log('- 4번: 빈 데이터 모드 (DEFAULT_SERVICES 3개 표시되어야 함)');
     </script>
 </body>
 </html>

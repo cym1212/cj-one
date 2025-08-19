@@ -10,47 +10,50 @@ ProductList 컴포넌트는 상품 목록을 그리드 형태로 표시하는 �
 
 ```typescript
 {
-  products: Array<{
-    id: number | string;
-    name: string;  // 상품명 (API의 title 필드에서 매핑)
-    price: number; // 최종 가격 (등급/직급 할인 적용된 가격)
-    originalPrice: number; // 원래 가격 (할인 전 basePrice)
-    image: string; // 상품 이미지 URL (API의 thumbnail 필드에서 매핑)
-    stock?: number; // 재고 수량
-    hasOptions?: boolean; // 옵션 상품 여부
-    category_id?: string; // 카테고리 ID
-    description?: string; // 상품 설명
-    created_at?: string; // 생성일
-    variant_id?: number; // 변형 ID
-    
-    // 등급/직급별 가격 정보 (normalizeProduct에서 추가)
-    levelPrice?: number | null; // 등급/직급 할인 가격
-    levelName?: string | null;  // 할인 등급/직급명 (예: "VIP 할인", "매니저 할인")
-    hasLevelPrice: boolean;     // 등급/직급 할인 적용 여부
-    
-    // PV (포인트 가치) 정보
-    pv: number; // 등급/직급별 PV 또는 기본 PV
-  }>;
-  loading: boolean; // Redux 로딩 상태
-  currentPage: number; // 현재 페이지 (PC용)
-  totalPages: number; // 전체 페이지 수 (서버 사이드 페이지네이션)
-  totalProducts: number; // 전체 상품 수 (API totalCount)
-  selectedCategory: string | null; // 선택된 카테고리
-  searchQuery: string; // 검색어
-  sortBy: string; // 정렬 기준 ('name', 'price', 'created', 'stock')
-  sortOrder: string; // 정렬 순서 ('asc', 'desc')
-  isUserLoggedIn: boolean; // 로그인 여부
-  isAdminMode: boolean; // 관리자/에디터 모드 여부
-  itemsPerRow: number; // 한 줄당 상품 수 (기본: 4)
-  showStock: boolean; // 재고 표시 여부
-  theme: Record<string, any>; // 테마 설정
-  
-  // 모바일 관련 (768px 이하 자동 활성화)
-  isMobile: boolean; // 모바일 환경 여부
-  mobileProducts: Product[]; // 모바일용 누적 상품 목록
-  mobilePage: number; // 모바일 페이지 번호
-  isLoadingMore: boolean; // 더보기 로딩 상태
-  loadMoreButtonRef: React.RefObject<HTMLButtonElement | null>; // 더보기 버튼 ref
+    products: Array<{
+        id: number | string;
+        name: string;  // 상품명 (API의 title 필드에서 매핑)
+        price: number; // 최종 가격 (등급/직급 할인 적용된 가격)
+        originalPrice: number; // 원래 가격 (할인 전 basePrice)
+        image: string; // 상품 이미지 URL (API의 thumbnail 필드에서 매핑)
+        stock?: number; // 재고 수량
+        hasOptions?: boolean; // 옵션 상품 여부
+        category_id?: string; // 카테고리 ID
+        description?: string; // 상품 설명
+        created_at?: string; // 생성일
+        variant_id?: number; // 변형 ID
+
+        // 등급/직급별 가격 정보 (normalizeProduct에서 추가)
+        levelPrice?: number | null; // 등급/직급 할인 가격
+        levelName?: string | null;  // 할인 등급/직급명 (예: "VIP 할인", "매니저 할인")
+        hasLevelPrice: boolean;     // 등급/직급 할인 적용 여부
+
+        // PV (포인트 가치) 정보
+        pv: number; // 등급/직급별 PV 또는 기본 PV
+
+        // 다중 이미지 지원 (선택사항)
+        additionalImages?: string[]; // 추가 이미지 URL 배열 (외부 스킨 다중 이미지 지원용)
+    }>;
+    loading: boolean; // Redux 로딩 상태
+    currentPage: number; // 현재 페이지 (PC용)
+    totalPages: number; // 전체 페이지 수 (서버 사이드 페이지네이션)
+    totalProducts: number; // 전체 상품 수 (API totalCount)
+    selectedCategory: string | null; // 선택된 카테고리
+    searchQuery: string; // 검색어
+    sortBy: string; // 정렬 기준 ('name', 'price', 'created', 'stock')
+    sortOrder: string; // 정렬 순서 ('asc', 'desc')
+    isUserLoggedIn: boolean; // 로그인 여부
+    isAdminMode: boolean; // 관리자/에디터 모드 여부
+    itemsPerRow: number; // 한 줄당 상품 수 (기본: 4)
+    showStock: boolean; // 재고 표시 여부
+    theme: Record<string, any>; // 테마 설정
+
+    // 모바일 관련 (768px 이하 자동 활성화)
+    isMobile: boolean; // 모바일 환경 여부
+    mobileProducts: Product[]; // 모바일용 누적 상품 목록
+    mobilePage: number; // 모바일 페이지 번호
+    isLoadingMore: boolean; // 더보기 로딩 상태
+    loadMoreButtonRef: React.RefObject<HTMLButtonElement | null>; // 더보기 버튼 ref
 }
 ```
 
@@ -408,7 +411,53 @@ const componentData = {
 - 세션 스토리지를 통한 모바일 상태 저장
 - 사용자 정보 우선순위: `userInfoFromState` > `userInfo` > `user`
 
-### 5. 성능 최적화
+### 5. 다중 이미지 지원 (선택사항)
+외부 스킨에서 3개 이미지가 필요한 레이아웃인 경우, `additionalImages` 배열을 활용할 수 있습니다.
+
+```jsx
+// 3개 이미지를 활용하는 외부 스킨 예시
+const CustomProductListSkin = ({ data, actions, options, utils }) => {
+  const { products } = data;
+  
+  return (
+    <div className="product-grid">
+      {products.map(product => (
+        <div key={product.id} className="product-card">
+          {/* 다중 이미지 표시 (최대 3개) */}
+          <div className="product-images">
+            {product.additionalImages?.slice(0, 3).map((imageUrl, index) => (
+              <img 
+                key={index} 
+                src={imageUrl} 
+                alt={`${product.name} ${index + 1}`}
+                className={`image-${index + 1}`}
+              />
+            ))}
+          </div>
+          
+          <h3>{product.name}</h3>
+          <div className="price">{product.price.toLocaleString()}원</div>
+          
+          {/* 나머지 상품 정보 */}
+        </div>
+      ))}
+    </div>
+  );
+};
+```
+
+**다중 이미지 배열 구성:**
+- 메인 이미지 (thumbnail 또는 image 필드)를 첫 번째로 포함
+- API의 `additionalImages` 배열의 모든 이미지 추가
+- `imageTwo` 필드가 있으면 중복되지 않는 경우 포함
+- 빈 값 자동 필터링 및 중복 제거
+
+**사용 시나리오:**
+- 상품의 다양한 각도나 색상을 보여주는 갤러리형 레이아웃
+- 메인 이미지 + 상세 이미지 2개를 함께 표시하는 레이아웃
+- 호버 시 이미지가 순차적으로 변경되는 인터랙티브 레이아웃
+
+### 6. 성능 최적화
 - 서버 사이드 페이지네이션으로 데이터 로드 최적화
 - Intersection Observer를 통한 효율적인 무한스크롤
 - 중복 상품 방지 메커니즘

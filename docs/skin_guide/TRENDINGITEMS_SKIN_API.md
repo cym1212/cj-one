@@ -38,30 +38,30 @@ TrendingItems는 트렌딩 아이템들을 그리드 형태로 표시하는 컴�
 
 ```typescript
 interface ComponentSkinProps {
-  data: TrendingItemsData;      // 컴포넌트 상태 및 설정
-  actions: TrendingItemsActions; // 이벤트 핸들러
-  options: Record<string, any>; // 사용자 설정 옵션
-  mode: 'editor' | 'preview' | 'production';
-  utils: {
-    t: (key: string) => string;
-    navigate: (path: string) => void;
-    formatCurrency: (amount: number) => string;
-    formatDate: (date: Date) => string;
-    getAssetUrl: (path: string) => string;
-    cx: (...classes: string[]) => string;
-  };
-  app?: {
-    user?: any;
-    company?: any;
-    currentLanguage?: string;
-    theme?: any;
-  };
-  editor?: {
-    isSelected: boolean;
-    onSelect: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
-  };
+   data: TrendingItemsData;      // 컴포넌트 상태 및 설정
+   actions: TrendingItemsActions; // 이벤트 핸들러
+   options: Record<string, any>; // 사용자 설정 옵션
+   mode: 'editor' | 'preview' | 'production';
+   utils: {
+      t: (key: string) => string;
+      navigate: (path: string) => void;
+      formatCurrency: (amount: number) => string;
+      formatDate: (date: Date) => string;
+      getAssetUrl: (path: string) => string;
+      cx: (...classes: string[]) => string;
+   };
+   app?: {
+      user?: any;
+      company?: any;
+      currentLanguage?: string;
+      theme?: any;
+   };
+   editor?: {
+      isSelected: boolean;
+      onSelect: () => void;
+      onEdit: () => void;
+      onDelete: () => void;
+   };
 }
 ```
 
@@ -75,7 +75,7 @@ interface ComponentSkinProps {
 |--------|------|------|
 | `id` | `string` | 컴포넌트 고유 ID |
 | `style` | `React.CSSProperties` | 컨테이너 스타일 |
-| `className` | `string` | CSS 클래스명 |
+| `className` | `string` | CSS 클래스명 (기본: 'trending-items-component') |
 | `mode` | `'editor' \| 'preview' \| 'production'` | 렌더링 모드 |
 
 ### 콘텐츠 설정
@@ -84,7 +84,7 @@ interface ComponentSkinProps {
 |--------|------|------|--------|
 | `title` | `string` | 메인 제목 | `'Trending now'` |
 | `subtitle` | `string` | 부제목 | `'에디터가 선정한'` |
-| `items` | `TrendingItem[]` | 트렌딩 아이템 배열 | `[]` |
+| `items` | `TrendingItem[]` | 트렌딩 아이템 배열 | 기본 샘플 아이템 3개 |
 
 ### 표시 설정
 
@@ -220,7 +220,26 @@ interface MoreButtonStyle {
   moreButtonBgColor: "transparent",
   moreButtonHoverTextColor: "#ffffff",
   moreButtonHoverBgColor: "#8a7a6d",
-  items: []
+  items: [
+    {
+      id: 1,
+      image: "https://via.placeholder.com/400x400",
+      title: "민감성 피부 스킨&케어",
+      url: "#"
+    },
+    {
+      id: 2,
+      image: "https://via.placeholder.com/400x400",
+      title: "수분 마스크팩 듀오 할인",
+      url: "#"
+    },
+    {
+      id: 3,
+      image: "https://via.placeholder.com/400x400",
+      title: "저자극 버블 클렌저 기획전",
+      url: "#"
+    }
+  ]
 }
 ```
 
@@ -587,7 +606,7 @@ return (
 
 | 속성 패널 항목 | 저장되는 속성 | 설명 |
 |---------------|--------------|------|
-| 제목 | `componentProps.title` | 메인 제목 |
+| 제목 | `componentProps.headingText` | 메인 제목 (어댑터에서 title로 매핑) |
 | 부제목 | `componentProps.subtitle` | 부제목 |
 | 이미지 둥글기 | `componentProps.imageRadius` | 이미지 테두리 둥글기 |
 | 버튼 표시 | `componentProps.showMoreButton` | MORE 버튼 표시 여부 |
@@ -652,7 +671,7 @@ return (
 ```javascript
 // 기존 내부 스킨 (Before)
 const OldTrendingComponent = ({ items, title, onItemClick }) => {
-  return <div>...</div>;
+   return <div>...</div>;
 };
 ```
 
@@ -660,12 +679,12 @@ const OldTrendingComponent = ({ items, title, onItemClick }) => {
 ```javascript
 // 외부 스킨 (After)
 const NewTrendingItemsSkin = ({ data, actions, utils, mode }) => {
-  // props 매핑
-  const items = data.items;
-  const title = data.title;
-  const onItemClick = actions.handleItemClick;
-  
-  return <div>...</div>;
+   // props 매핑
+   const items = data.items;
+   const title = data.title;
+   const onItemClick = actions.handleItemClick;
+
+   return <div>...</div>;
 };
 ```
 
@@ -674,8 +693,8 @@ const NewTrendingItemsSkin = ({ data, actions, utils, mode }) => {
 // Before
 <div onClick={() => handleClick(item)}>
 
-// After
-<div onClick={(e) => actions.handleItemClick(item, e)}>
+   // After
+   <div onClick={(e) => actions.handleItemClick(item, e)}>
 ```
 
 #### 4단계: 번역 기능 추가
@@ -707,11 +726,11 @@ const NewTrendingItemsSkin = ({ data, actions, utils, mode }) => {
 import { memo, useMemo } from 'react';
 
 const OptimizedSkin = memo(({ data, actions }) => {
-  const validItems = useMemo(() => {
-    return data.items.filter(item => item.image && item.title);
-  }, [data.items]);
-  
-  return <div>...</div>;
+   const validItems = useMemo(() => {
+      return data.items.filter(item => item.image && item.title);
+   }, [data.items]);
+
+   return <div>...</div>;
 });
 ```
 
@@ -719,24 +738,24 @@ const OptimizedSkin = memo(({ data, actions }) => {
 ```javascript
 // 키보드 네비게이션 지원
 <div
-  role="grid"
-  aria-label="트렌딩 아이템"
+        role="grid"
+        aria-label="트렌딩 아이템"
 >
-  {items.map((item, index) => (
-    <div
-      key={item.id}
-      role="gridcell"
-      tabIndex={0}
-      aria-label={`트렌딩 아이템: ${item.title}`}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          actions.handleItemClick(item, e);
-        }
-      }}
-    >
-      {/* 아이템 내용 */}
-    </div>
-  ))}
+   {items.map((item, index) => (
+           <div
+                   key={item.id}
+                   role="gridcell"
+                   tabIndex={0}
+                   aria-label={`트렌딩 아이템: ${item.title}`}
+                   onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                         actions.handleItemClick(item, e);
+                      }
+                   }}
+           >
+              {/* 아이템 내용 */}
+           </div>
+   ))}
 </div>
 ```
 
