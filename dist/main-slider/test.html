@@ -26,71 +26,49 @@
         if (window.Poj2MainSlider) {
             const MainSlider = window.Poj2MainSlider;
             
-            // 테스트용 더미 데이터 (5개로 증가)
+            // 원본 데이터 사용 (720x900 비율)
             const dummyData = [
                 {
-                    content: "첫 번째 슬라이드\n멋진 제품 소개",
-                    path: "/slide1",
-                    badges: ["신제품", "인기"],
-                    image: "https://picsum.photos/800/480?random=1",
-                    isAd: false
+                    content: '네이버페이로 결제하면\n~3,000p 적립',
+                    path: '/',
+                    badges: ['네이버포인트'],
+                    image: '../public/images/main-slide/n-pay.jpg',
+                    isAd: false,
                 },
                 {
-                    content: "두 번째 슬라이드\n특별 할인 이벤트",
-                    path: "/slide2",
-                    badges: ["할인", "이벤트"],
-                    image: "https://picsum.photos/800/480?random=2",
-                    isAd: true
+                    content: '식닥 위의 예술\n~빌레로이앤보흐~44%',
+                    path: '/',
+                    badges: ['백화점동일', '단독특가'],
+                    image: '../public/images/main-slide/villeroy-boch.jpg',
+                    isAd: true,
                 },
                 {
-                    content: "세 번째 슬라이드\n베스트 셀러",
-                    path: "/slide3",
-                    badges: ["베스트"],
-                    image: "https://picsum.photos/800/480?random=3",
-                    isAd: false
+                    content: '나에게 맞는 유산균\n드시모네 브랜드위크',
+                    path: '/',
+                    badges: ['CJ특가', '5% 카드할인'],
+                    image: '../public/images/main-slide/be-simone.jpg',
+                    isAd: true,
                 },
                 {
-                    content: "네 번째 슬라이드\n새로운 컬렉션",
-                    path: "/slide4",
-                    badges: ["신상", "트렌드"],
-                    image: "https://picsum.photos/800/480?random=4",
-                    isAd: false
+                    content: '1일 섭취량은 100%\n~캡슐은 초미니로 작게',
+                    path: '/',
+                    badges: ['적립10%', '추가증정'],
+                    image: '../public/images/main-slide/ag-health.jpg',
+                    isAd: true,
                 },
                 {
-                    content: "네 번째 슬라이드\n새로운 컬렉션",
-                    path: "/slide4",
-                    badges: ["신상", "트렌드"],
-                    image: "https://picsum.photos/800/480?random=4",
-                    isAd: false
+                    content: '정수기는 역시 코웨이\n최대 6개월 반값할인',
+                    path: '/',
+                    badges: ['상품권', '제휴카드'],
+                    image: '../public/images/main-slide/coway.jpg',
+                    isAd: true,
                 },
                 {
-                    content: "네 번째 슬라이드\n새로운 컬렉션",
-                    path: "/slide4",
-                    badges: ["신상", "트렌드"],
-                    image: "https://picsum.photos/800/480?random=4",
-                    isAd: false
-                },
-                {
-                    content: "네 번째 슬라이드\n새로운 컬렉션",
-                    path: "/slide4",
-                    badges: ["신상", "트렌드"],
-                    image: "https://picsum.photos/800/480?random=4",
-                    isAd: false
-                },
-                {
-                    content: "네 번째 슬라이드\n새로운 컬렉션",
-                    path: "/slide4",
-                    badges: ["신상", "트렌드"],
-                    image: "https://picsum.photos/800/480?random=4",
-                    isAd: false
-                },
-
-                {
-                    content: "다섯 번째 슬라이드\n마지막 기회",
-                    path: "/slide5",
-                    badges: ["마감임박"],
-                    image: "https://picsum.photos/800/480?random=5",
-                    isAd: true
+                    content: '다이슨 에어랩id\n완벽 썸머 스타일링',
+                    path: '/',
+                    badges: ['5%쿠폰', '2종사은증정'],
+                    image: '../public/images/main-slide/dyson.jpg',
+                    isAd: true,
                 }
             ];
             

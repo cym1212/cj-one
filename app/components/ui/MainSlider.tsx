@@ -195,14 +195,15 @@ export default function MainSlider({ data }: MainSliderProps) {
                 slidesPerView={1}
                 breakpoints={{
                     640: {
-                        slidesPerView: 'auto',
+                        slidesPerView: 3,
+                        spaceBetween: 20,
+                    },
+                    1024: {
+                        slidesPerView: 4,
                         spaceBetween: 20,
                     },
                 }}
-                pagination={{
-                    type: 'progressbar',
-                    el: progressRef.current,
-                }}
+                pagination={false}
                 navigation={{
                     prevEl: navigationPrevRef.current,
                     nextEl: navigationNextRef.current,
@@ -214,21 +215,12 @@ export default function MainSlider({ data }: MainSliderProps) {
                     setCurrentSlide(swiper.realIndex + 1);
                     handleUserInteraction();
                 }}
-                onBeforeInit={(swiper) => {
-                    if (swiper.params.pagination && typeof swiper.params.pagination === 'object') {
-                        swiper.params.pagination.el = progressRef.current;
-                    }
-                    if (swiper.params.navigation && typeof swiper.params.navigation === 'object') {
-                        swiper.params.navigation.prevEl = navigationPrevRef.current;
-                        swiper.params.navigation.nextEl = navigationNextRef.current;
-                    }
-                }}
                 className="w-full sm:h-[480px]"
             >
                 {data.map((slide, idx) => (
                     <SwiperSlide
                         key={slide.content + idx}
-                        className="sm:!w-auto"
+                        className=""
                     >
                         <Link
                             to={slide.path}
@@ -264,11 +256,11 @@ export default function MainSlider({ data }: MainSliderProps) {
                 ))}
             </Swiper>
             <div className="poj2-main-slider-controller poj2-global-wrapper flex items-center justify-center gap-3 sm:gap-5 p-4 sm:p-5">
-                <div
-                    ref={progressRef}
-                    className="swiper-pagination swiper-pagination-progressbar swiper-pagination-horizontal"
-                >
-                    <span className="swiper-pagination-progressbar-fill"></span>
+                <div className="flex-1 h-0.5 bg-gray-200 relative">
+                    <div 
+                        className="h-full bg-black transition-all duration-300 ease-out"
+                        style={{ width: `${(currentSlide / totalSlides) * 100}%` }}
+                    ></div>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
                     <span className="font-bold">{currentSlide}</span>
