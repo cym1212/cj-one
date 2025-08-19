@@ -3,6 +3,68 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation, Autoplay } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 
+
+const SLIDES_DATA = [
+    {
+        content: '네이버페이로 결제하면\n~3,000p 적립',
+        path: '/',
+        badges: ['네이버포인트'],
+        image: 'https://withcookie.b-cdn.net/c/default/0.35504645337081175.png',
+        isAd: false,
+    },
+    {
+        content: '식닥 위의 예술\n~빌레로이앤보흐~44%',
+        path: '/',
+        badges: ['백화점동일', '단독특가'],
+        image: 'https://withcookie.b-cdn.net/c/default/0.35504645337081175.png',
+        isAd: true,
+    },
+    {
+        content: '나에게 맞는 유산균\n드시모네 브랜드위크',
+        path: '/',
+        badges: ['CJ특가', '5% 카드할인'],
+        image: 'https://withcookie.b-cdn.net/c/default/0.35504645337081175.png',
+        isAd: true,
+    },
+    {
+        content: '1일 섭취량은 100%\n~캡슐은 초미니로 작게',
+        path: '/',
+        badges: ['적립10%', '추가증정'],
+        image: 'https://withcookie.b-cdn.net/c/default/0.35504645337081175.png',
+        isAd: true,
+    },
+    {
+        content: '정수기는 역시 코웨이\n최대 6개월 반값할인',
+        path: '/',
+        badges: ['상품권', '제휴카드'],
+        image: 'https://withcookie.b-cdn.net/c/default/0.35504645337081175.png',
+        isAd: true,
+    },
+    {
+        content: '다이슨 에어랩id\n완벽 썸머 스타일링',
+        path: '/',
+        badges: ['5%쿠폰', '2종사은증정'],
+        image: 'https://withcookie.b-cdn.net/c/default/0.35504645337081175.png',
+        isAd: true,
+    },
+    {
+        content: '1일 섭취량은 100%\n~캡슐은 초미니로 작게',
+        path: '/',
+        badges: ['적립10%', '추가증정'],
+        image: 'https://withcookie.b-cdn.net/c/default/0.35504645337081175.png',
+        isAd: true,
+    },
+    {
+        content: '정수기는 역시 코웨이\n최대 6개월 반값할인',
+        path: '/',
+        badges: ['상품권', '제휴카드'],
+        image: 'https://withcookie.b-cdn.net/c/default/0.35504645337081175.png',
+        isAd: true,
+    },
+];
+
+
+
 // react-router Link 대체 (UMD 빌드용)
 const Link = ({ to, children, ...props }: any) => (
     <a href={to} onClick={(e) => { e.preventDefault(); console.log('Navigate to:', to); }} {...props}>
@@ -66,10 +128,10 @@ export interface MainSliderProps {
     data: Slider[];
 }
 
-export default function MainSlider({ data }: MainSliderProps) {
+export default function MainSlider({  }: MainSliderProps) {
+    const data = SLIDES_DATA;
     const swiperRef = useRef<SwiperType | null>(null);
     const sliderRef = useRef<HTMLDivElement>(null);
-    const progressRef = useRef<HTMLDivElement>(null);
     const navigationPrevRef = useRef<HTMLButtonElement>(null);
     const navigationNextRef = useRef<HTMLButtonElement>(null);
     const userInteractionTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -195,11 +257,7 @@ export default function MainSlider({ data }: MainSliderProps) {
                 slidesPerView={1}
                 breakpoints={{
                     640: {
-                        slidesPerView: 3,
-                        spaceBetween: 20,
-                    },
-                    1024: {
-                        slidesPerView: 4,
+                        slidesPerView: 'auto',
                         spaceBetween: 20,
                     },
                 }}
@@ -220,7 +278,7 @@ export default function MainSlider({ data }: MainSliderProps) {
                 {data.map((slide, idx) => (
                     <SwiperSlide
                         key={slide.content + idx}
-                        className=""
+                        className="!w-full sm:!w-[384px]"
                     >
                         <Link
                             to={slide.path}
