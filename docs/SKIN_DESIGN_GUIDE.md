@@ -179,6 +179,8 @@ const components = {
 ```bash
 COMPONENT=component-name npx webpack --config webpack.config.multi.mjs
 ```
+### 4. csss
+만약 tailwind css 만 사용해서 만들 css 가 없다면 빈 css 파일을 만들것
 
 ## 결론
 이 방법을 통해 외부 환경에서도 Tailwind CSS 디자인을 완벽하게 유지하면서 독립적으로 동작하는 스킨 컴포넌트를 만들 수 있습니다.
