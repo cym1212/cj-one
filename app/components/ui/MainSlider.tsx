@@ -1,11 +1,54 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Link } from 'react-router';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation, Autoplay } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 
-import { ImageBox } from '@/components/ui/ImageBox';
-import { ArrowLeftIcon, ArrowRightIcon, PlayIcon, PauseIcon } from '@/components/icons';
+// react-router Link 대체 (UMD 빌드용)
+const Link = ({ to, children, ...props }: any) => (
+    <a href={to} onClick={(e) => { e.preventDefault(); console.log('Navigate to:', to); }} {...props}>
+        {children}
+    </a>
+);
+
+// ImageBox 컴포넌트 인라인화
+interface ImageBoxProps {
+    src: string;
+    alt?: string;
+    sizes?: string;
+    priority?: boolean;
+}
+
+const ImageBox = ({ src, alt = '' }: ImageBoxProps) => (
+    <div className="relative w-full h-full overflow-hidden">
+        <img src={src} alt={alt} className="w-full h-full object-cover" />
+    </div>
+);
+
+// 아이콘 컴포넌트들 인라인화
+const ArrowLeftIcon = ({ tailwind }: { tailwind?: string }) => (
+    <svg className={tailwind} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
+
+const ArrowRightIcon = ({ tailwind }: { tailwind?: string }) => (
+    <svg className={tailwind} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
+
+const PlayIcon = ({ tailwind }: { tailwind?: string }) => (
+    <svg className={tailwind} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M8 5V19L19 12L8 5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
+
+const PauseIcon = ({ tailwind }: { tailwind?: string }) => (
+    <svg className={tailwind} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect x="6" y="4" width="4" height="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <rect x="14" y="4" width="4" height="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
 
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -23,7 +66,7 @@ export interface MainSliderProps {
     data: Slider[];
 }
 
-export function MainSlider({ data }: MainSliderProps) {
+export default function MainSlider({ data }: MainSliderProps) {
     const swiperRef = useRef<SwiperType | null>(null);
     const sliderRef = useRef<HTMLDivElement>(null);
     const progressRef = useRef<HTMLDivElement>(null);
@@ -142,7 +185,7 @@ export function MainSlider({ data }: MainSliderProps) {
         >
             <Swiper
                 modules={[Pagination, Navigation, Autoplay]}
-                loop
+                loop={data.length > 3}
                 autoplay={{
                     delay: 4000,
                     disableOnInteraction: false,

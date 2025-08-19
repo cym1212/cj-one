@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const components = {
   'main-slider': {
     entry: './app/components/ui/MainSlider.tsx',
-    name: 'Poj2MainSliderSkin',
+    name: 'Poj2MainSlider',
     filename: 'poj2-main-slider'
   },
   // 추가 컴포넌트들을 여기에 추가할 수 있습니다

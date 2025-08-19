@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MainSlider Skin Test - Tailwind 포함</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 빌드된 CSS -->
+    <link rel="stylesheet" href="./poj2-main-slider.css">
+    
+    <!-- React CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- 빌드된 UMD 모듈 -->
+    <script src="./poj2-main-slider.umd.js"></script>
+    
+    <script>
+        // UMD 모듈이 로드된 후 컴포넌트 렌더링
+        if (window.Poj2MainSlider) {
+            const MainSlider = window.Poj2MainSlider;
+            
+            // 테스트용 더미 데이터 (5개로 증가)
+            const dummyData = [
+                {
+                    content: "첫 번째 슬라이드\n멋진 제품 소개",
+                    path: "/slide1",
+                    badges: ["신제품", "인기"],
+                    image: "https://picsum.photos/800/480?random=1",
+                    isAd: false
+                },
+                {
+                    content: "두 번째 슬라이드\n특별 할인 이벤트",
+                    path: "/slide2",
+                    badges: ["할인", "이벤트"],
+                    image: "https://picsum.photos/800/480?random=2",
+                    isAd: true
+                },
+                {
+                    content: "세 번째 슬라이드\n베스트 셀러",
+                    path: "/slide3",
+                    badges: ["베스트"],
+                    image: "https://picsum.photos/800/480?random=3",
+                    isAd: false
+                },
+                {
+                    content: "네 번째 슬라이드\n새로운 컬렉션",
+                    path: "/slide4",
+                    badges: ["신상", "트렌드"],
+                    image: "https://picsum.photos/800/480?random=4",
+                    isAd: false
+                },
+                {
+                    content: "네 번째 슬라이드\n새로운 컬렉션",
+                    path: "/slide4",
+                    badges: ["신상", "트렌드"],
+                    image: "https://picsum.photos/800/480?random=4",
+                    isAd: false
+                },
+                {
+                    content: "네 번째 슬라이드\n새로운 컬렉션",
+                    path: "/slide4",
+                    badges: ["신상", "트렌드"],
+                    image: "https://picsum.photos/800/480?random=4",
+                    isAd: false
+                },
+                {
+                    content: "네 번째 슬라이드\n새로운 컬렉션",
+                    path: "/slide4",
+                    badges: ["신상", "트렌드"],
+                    image: "https://picsum.photos/800/480?random=4",
+                    isAd: false
+                },
+                {
+                    content: "네 번째 슬라이드\n새로운 컬렉션",
+                    path: "/slide4",
+                    badges: ["신상", "트렌드"],
+                    image: "https://picsum.photos/800/480?random=4",
+                    isAd: false
+                },
+
+                {
+                    content: "다섯 번째 슬라이드\n마지막 기회",
+                    path: "/slide5",
+                    badges: ["마감임박"],
+                    image: "https://picsum.photos/800/480?random=5",
+                    isAd: true
+                }
+            ];
+            
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(React.createElement(MainSlider, { data: dummyData }));
+        } else {
+            console.error('MainSlider component not loaded');
+            document.getElementById('root').innerHTML = '<p>컴포넌트를 로드할 수 없습니다.</p>';
+        }
+    </script>
+</body>
+</html>

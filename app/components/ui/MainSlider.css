@@ -1,0 +1,29 @@
+/* MainSlider 컴포넌트 스타일 */
+
+/* 프로그래스바 커스터마이징 */
+.poj2-main-slider .swiper-pagination-progressbar.swiper-pagination-horizontal {
+    position: relative !important;
+    height: 2px !important;
+    background-color: #e5e5e5 !important;
+}
+
+.poj2-main-slider .swiper-pagination-progressbar-fill {
+    background-color: #111 !important;
+}
+
+/* 글로벌 래퍼 스타일 (Tailwind 없는 환경용 폴백) */
+.poj2-global-wrapper {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+/* text-description 색상 (Tailwind 없는 환경용 폴백) */
+.text-description {
+    color: #666;
+}
+
+/* hover:fill-accent 색상 (Tailwind 없는 환경용 폴백) */
+.hover\:fill-accent:hover {
+    fill: #640faf;
+}
