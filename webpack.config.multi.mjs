@@ -14,12 +14,12 @@ const components = {
     name: 'Poj2MainSlider',
     filename: 'poj2-main-slider'
   },
+  'product-section': {
+    entry: './app/components/ui/ProductSection.tsx',
+    name: 'Poj2ProductSection',
+    filename: 'poj2-product-section'
+  },
   // 추가 컴포넌트들을 여기에 추가할 수 있습니다
-  // 'product-card': {
-  //   entry: './app/components/ui/ProductCard.tsx',
-  //   name: 'Poj2ProductCardSkin',
-  //   filename: 'poj2-product-card'
-  // },
 };
 
 // CLI에서 컴포넌트 이름 가져오기

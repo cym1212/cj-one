@@ -81,8 +81,8 @@ interface ImageBoxProps {
 }
 
 const ImageBox = ({ src, alt = '' }: ImageBoxProps) => (
-    <div className="relative w-full h-full overflow-hidden">
-        <img src={src} alt={alt} className="w-full h-full object-cover" />
+    <div className="relative w-full aspect-[4/5] overflow-hidden">
+        <img src={src} alt={alt} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 ease-out hover:scale-105" />
     </div>
 );
 
@@ -283,7 +283,7 @@ export default function MainSlider({  }: MainSliderProps) {
                     setCurrentSlide(swiper.realIndex + 1);
                     handleUserInteraction();
                 }}
-                className="w-full sm:h-[480px]"
+                className="w-full"
             >
                 {data.map((slide, idx) => (
                     <SwiperSlide
