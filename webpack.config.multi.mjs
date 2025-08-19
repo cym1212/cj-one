@@ -19,6 +19,21 @@ const components = {
     name: 'Poj2ProductSection',
     filename: 'poj2-product-section'
   },
+  'md-recommend': {
+    entry: './app/components/ui/MDRecommend.tsx',
+    name: 'Poj2MDRecommend',
+    filename: 'poj2-md-recommend'
+  },
+  'category-ranking': {
+    entry: './app/components/ui/CategoryRanking.tsx',
+    name: 'Poj2CategoryRanking',
+    filename: 'poj2-category-ranking'
+  },
+  'recommend-service': {
+    entry: './app/components/ui/RecommendService.tsx',
+    name: 'Poj2RecommendService',
+    filename: 'poj2-recommend-service'
+  },
   // 추가 컴포넌트들을 여기에 추가할 수 있습니다
 };
 

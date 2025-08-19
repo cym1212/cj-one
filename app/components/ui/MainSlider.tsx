@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation, Autoplay } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
@@ -23,6 +23,30 @@ const DEFAULT_BANNERS: BannerItem[] = [
         transparentButton: false,
         mediaType: 'image',
         hasBackground: false,
+        
+        // 광고 관련 기본값
+        showAd: false,
+        adText: '광고',
+        adLink: '#',
+        adPosition: '3',
+        adPositionPc: '3',
+        adPositionMobile: '3',
+        adTextColor: '#fff',
+        adBackgroundColor: 'rgba(0, 0, 0, 0.8)',
+        adBorderColor: '',
+        adOpacity: 1,
+        
+        // 카테고리 관련 기본값
+        showCategory: false,
+        categories: [],
+        categoryPosition: '1',
+        categoryPositionPc: '1',
+        categoryPositionMobile: '1',
+        categoryTextColor: 'white',
+        categoryBackgroundColor: 'rgba(0, 0, 0, 0.7)',
+        categoryBorderColor: '',
+        categoryFontSize: '14px',
+        categoryBorderRadius: '20px',
     }
 ];
 
@@ -79,6 +103,22 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
+// 위치 스타일 헬퍼 함수
+const getPositionStyles = (position: string): React.CSSProperties => {
+    switch (position) {
+        case '1': return { top: '10%', left: '10%' };
+        case '2': return { top: '10%', left: '50%', transform: 'translateX(-50%)' };
+        case '3': return { top: '10%', right: '10%' };
+        case '4': return { top: '50%', left: '10%', transform: 'translateY(-50%)' };
+        case '5': return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+        case '6': return { top: '50%', right: '10%', transform: 'translateY(-50%)' };
+        case '7': return { bottom: '10%', left: '10%' };
+        case '8': return { bottom: '10%', left: '50%', transform: 'translateX(-50%)' };
+        case '9': return { bottom: '10%', right: '10%' };
+        default: return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }; // 기본값 5번 위치
+    }
+};
+
 // BannerItem 인터페이스 (MainBanner API 문서 기준)
 interface BannerItem {
     // 기본 속성
@@ -89,6 +129,8 @@ interface BannerItem {
     
     // 위치 관련
     position?: string;          // 텍스트 위치 (1-9)
+    positionPc?: string;        // PC용 텍스트 위치 (1-9)
+    positionMobile?: string;    // 모바일용 텍스트 위치 (1-9)
     horizontalPosition?: string; // 가로 위치 (레거시)
     verticalPosition?: string;   // 세로 위치 (레거시)
     
@@ -122,6 +164,31 @@ interface BannerItem {
     
     // 스타일
     style?: string | React.CSSProperties; // 커스텀 스타일
+    
+    // 광고 관련
+    showAd?: boolean;           // 광고 표시 여부
+    adImageUrl?: string;        // 광고 이미지 URL
+    adText?: string;            // 광고 텍스트
+    adLink?: string;            // 광고 링크 URL
+    adPosition?: string;        // 광고 위치 (기본)
+    adPositionPc?: string;      // 광고 위치 (PC)
+    adPositionMobile?: string;  // 광고 위치 (모바일)
+    adTextColor?: string;       // 광고 텍스트 색상
+    adBackgroundColor?: string; // 광고 배경 색상
+    adBorderColor?: string;     // 광고 테두리 색상
+    adOpacity?: number;         // 광고 투명도 (0-1)
+    
+    // 카테고리 관련
+    showCategory?: boolean;         // 카테고리 표시 여부
+    categories?: string[];          // 카테고리 배열 (다중 지원)
+    categoryPosition?: string;      // 카테고리 위치 (기본)
+    categoryPositionPc?: string;    // 카테고리 위치 (PC)
+    categoryPositionMobile?: string;// 카테고리 위치 (모바일)
+    categoryTextColor?: string;     // 카테고리 텍스트 색상
+    categoryBackgroundColor?: string;// 카테고리 배경 색상
+    categoryBorderColor?: string;   // 카테고리 테두리 색상
+    categoryFontSize?: string;      // 카테고리 폰트 크기
+    categoryBorderRadius?: string;  // 카테고리 테두리 둥글기
 
     // 기존 Slider 인터페이스와의 호환성
     content?: string;
@@ -597,36 +664,117 @@ function MainSliderComponent(props: MainSliderProps = {}) {
                                     </div>
                                 )}
 
-                                {/* 광고 뱃지 (레거시 호환) */}
-                                {banner.isAd && <span className="absolute top-0 right-0 text-xs  text-white px-2 py-0.5 font-bold bg-black/20">광고</span>}
+                                {/* 광고 딱지 - API 문서 기준 */}
+                                {banner.showAd && (
+                                    <div 
+                                        className="absolute z-30"
+                                        style={{
+                                            top: '10px',
+                                            right: '10px',
+                                            backgroundColor: banner.adBackgroundColor || 'rgba(0, 0, 0, 0.8)',
+                                            color: banner.adTextColor || '#fff',
+                                            borderRadius: '4px',
+                                            padding: '6px 12px',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            border: banner.adBorderColor ? `1px solid ${banner.adBorderColor}` : 'none',
+                                            opacity: banner.adOpacity !== undefined ? banner.adOpacity : 1,
+                                            cursor: (banner.adLink && banner.adLink !== '#') ? 'pointer' : 'default',
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                        onClick={() => {
+                                            if (banner.adLink && banner.adLink !== '#') {
+                                                if (banner.adLink.startsWith('http') || banner.adLink.startsWith('//')) {
+                                                    window.open(banner.adLink, '_blank');
+                                                } else {
+                                                    window.location.href = banner.adLink;
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        {banner.adText || '광고'}
+                                    </div>
+                                )}
+
+                                {/* 레거시 광고 뱃지 호환 */}
+                                {banner.isAd && !banner.showAd && <span className="absolute top-0 right-0 text-xs text-white px-2 py-0.5 font-bold bg-black/20">광고</span>}
 
                                 {/* 텍스트 오버레이 */}
                                 {banner.showTitle !== false && (
                                     <div 
-                                        className={`absolute bottom-[45px] left-0 right-0 w-full px-[30px] position-${banner.position || '5'}`}
+                                        className="absolute px-[30px] z-20"
                                         style={{ 
+                                            ...getPositionStyles(
+                                                data.isMobile 
+                                                    ? (banner.positionMobile || banner.position || '5')
+                                                    : (banner.positionPc || banner.position || '5')
+                                            ),
                                             color: banner.textColor || 'white',
+                                            maxWidth: '80%',
                                             ...(banner.hasBackground && {
                                                 backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                                padding: '20px 30px'
+                                                padding: '20px 30px',
+                                                borderRadius: '8px'
                                             })
                                         }}
                                     >
                                         {displayText && (
-                                            <p 
-                                                className="mb-2.5 text-2xl font-bold leading-sm whitespace-pre"
-                                                style={{ textShadow: banner.textShadow }}
+                                            <h2 
+                                                className="mb-2.5 text-2xl font-bold leading-tight text-white"
+                                                style={{
+                                                    color: banner.textColor || 'white',
+                                                    textShadow: banner.textShadow || '0 2px 4px rgba(0, 0, 0, 0.8)',
+                                                    fontSize: data.isMobile ? '1.5rem' : '2rem',
+                                                    lineHeight: '1.2'
+                                                }}
                                             >
-                                                {displayText}
-                                            </p>
+                                                {displayText.split(/\\n|\n/).map((line, index, array) => (
+                                                    <React.Fragment key={index}>
+                                                        {line}
+                                                        {index < array.length - 1 && <br />}
+                                                    </React.Fragment>
+                                                ))}
+                                            </h2>
                                         )}
                                         {banner.description && (
                                             <p 
-                                                className="text-lg mb-3"
-                                                style={{ textShadow: banner.textShadow }}
+                                                className="text-lg mb-3 text-white"
+                                                style={{
+                                                    color: banner.textColor || 'white',
+                                                    textShadow: banner.textShadow || '0 2px 4px rgba(0, 0, 0, 0.8)',
+                                                    fontSize: data.isMobile ? '1rem' : '1.125rem',
+                                                    lineHeight: '1.4'
+                                                }}
                                             >
-                                                {banner.description}
+                                                {banner.description.split(/\\n|\n/).map((line, index, array) => (
+                                                    <React.Fragment key={index}>
+                                                        {line}
+                                                        {index < array.length - 1 && <br />}
+                                                    </React.Fragment>
+                                                ))}
                                             </p>
+                                        )}
+                                        
+                                        {/* 카테고리 영역 - 텍스트 설명 아래 배치 */}
+                                        {banner.showCategory && banner.categories && banner.categories.length > 0 && (
+                                            <div className="flex gap-2 flex-wrap mb-4">
+                                                {banner.categories.filter(category => category && category.trim()).map((category, categoryIdx) => (
+                                                    <div 
+                                                        key={categoryIdx}
+                                                        style={{
+                                                            backgroundColor: banner.categoryBackgroundColor || 'rgba(0, 0, 0, 0.7)',
+                                                            color: banner.categoryTextColor || 'white',
+                                                            padding: '6px 14px',
+                                                            borderRadius: banner.categoryBorderRadius || '20px',
+                                                            fontSize: banner.categoryFontSize || '14px',
+                                                            fontWeight: 'bold',
+                                                            border: banner.categoryBorderColor ? `2px solid ${banner.categoryBorderColor}` : 'none'
+                                                        }}
+                                                    >
+                                                        {category}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         )}
                                         
                                         {/* 버튼 표시 - API 문서 조건에 따라 */}
@@ -679,9 +827,9 @@ function MainSliderComponent(props: MainSliderProps = {}) {
                                                 {banner.buttonText || '자세히 보기'}
                                             </button>
                                         )}
-                                        
+
                                         {/* 배지 (레거시 호환) */}
-                                        {banner.badges && (
+                                        {banner.badges && !banner.showCategory && (
                                             <div className="flex gap-1.5 mt-2">
                                                 {banner.badges.map((badge, badgeIdx) => (
                                                     <span

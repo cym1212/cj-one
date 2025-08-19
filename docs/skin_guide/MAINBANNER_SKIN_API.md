@@ -27,6 +27,10 @@ MainBanner는 웹사이트의 메인 비주얼 영역을 담당하는 컴포넌�
 - 📱 반응형 디자인
 - ⚡ 자동 재생 및 수동 제어
 - 🎨 커스터마이징 가능한 UI 요소
+- 📢 광고 딱지 표시 기능 (텍스트 기반)
+- 🏷️ 다중 카테고리 태그 표시 기능
+- ✍️ 텍스트에서 줄바꿈(\n) 지원
+- 🎛️ PC/모바일 별도 위치 설정 지원
 
 ---
 
@@ -212,6 +216,31 @@ interface BannerItem {
   
   // 스타일
   style?: string | React.CSSProperties; // 커스텀 스타일
+  
+  // 광고 관련
+  showAd?: boolean;           // 광고 표시 여부
+  adImageUrl?: string;        // 광고 이미지 URL
+  adText?: string;            // 광고 텍스트
+  adLink?: string;            // 광고 링크 URL
+  adPosition?: string;        // 광고 위치 (기본)
+  adPositionPc?: string;      // 광고 위치 (PC)
+  adPositionMobile?: string;  // 광고 위치 (모바일)
+  adTextColor?: string;       // 광고 텍스트 색상
+  adBackgroundColor?: string; // 광고 배경 색상
+  adBorderColor?: string;     // 광고 테두리 색상
+  adOpacity?: number;         // 광고 투명도 (0-1)
+  
+  // 카테고리 관련
+  showCategory?: boolean;         // 카테고리 표시 여부
+  categories?: string[];          // 카테고리 배열 (다중 지원)
+  categoryPosition?: string;      // 카테고리 위치 (기본)
+  categoryPositionPc?: string;    // 카테고리 위치 (PC)
+  categoryPositionMobile?: string;// 카테고리 위치 (모바일)
+  categoryTextColor?: string;     // 카테고리 텍스트 색상
+  categoryBackgroundColor?: string;// 카테고리 배경 색상
+  categoryBorderColor?: string;   // 카테고리 테두리 색상
+  categoryFontSize?: string;      // 카테고리 폰트 크기
+  categoryBorderRadius?: string;  // 카테고리 테두리 둥글기
 }
 ```
 
@@ -261,7 +290,31 @@ interface BannerItem {
   autoplay: true,
   muted: true,
   loop: true,
-  hasBackground: false
+  hasBackground: false,
+  
+  // 광고 관련 기본값
+  showAd: false,
+  adText: '광고',
+  adLink: '#',
+  adPosition: '3',
+  adPositionPc: '3',
+  adPositionMobile: '3',
+  adTextColor: '#fff',
+  adBackgroundColor: 'rgba(0, 0, 0, 0.8)',
+  adBorderColor: '',
+  adOpacity: 1,
+  
+  // 카테고리 관련 기본값
+  showCategory: false,
+  categories: [],
+  categoryPosition: '1',
+  categoryPositionPc: '1',
+  categoryPositionMobile: '1',
+  categoryTextColor: 'white',
+  categoryBackgroundColor: 'rgba(0, 0, 0, 0.7)',
+  categoryBorderColor: '',
+  categoryFontSize: '14px',
+  categoryBorderRadius: '20px'
 }
 ```
 
@@ -349,11 +402,25 @@ const CustomSliderSkin = ({ data, actions, utils, mode }) => {
           className={`text-overlay position-${currentBanner.position || '5'}`}
           style={{ color: currentBanner.textColor }}
         >
-          <h2 style={{ textShadow: currentBanner.textShadow }}>
-            {currentBanner.text}
-          </h2>
+          {currentBanner.text && (
+            <h2 style={{ textShadow: currentBanner.textShadow }}>
+              {currentBanner.text.split(/\\n|\n/).map((line, index, array) => (
+                <React.Fragment key={index}>
+                  {line}
+                  {index < array.length - 1 && <br />}
+                </React.Fragment>
+              ))}
+            </h2>
+          )}
           {currentBanner.description && (
-            <p>{currentBanner.description}</p>
+            <p>
+              {currentBanner.description.split(/\\n|\n/).map((line, index, array) => (
+                <React.Fragment key={index}>
+                  {line}
+                  {index < array.length - 1 && <br />}
+                </React.Fragment>
+              ))}
+            </p>
           )}
           
           {currentBanner.showButton && currentBanner.url && currentBanner.url !== '#' && (
@@ -373,6 +440,66 @@ const CustomSliderSkin = ({ data, actions, utils, mode }) => {
               {currentBanner.buttonText}
             </button>
           )}
+        </div>
+      )}
+
+      {/* 광고 딱지 */}
+      {currentBanner.showAd && (
+        <div 
+          className={`ad-overlay position-${currentBanner.adPosition || '3'}`}
+          style={{
+            position: 'absolute',
+            zIndex: 10,
+            backgroundColor: currentBanner.adBackgroundColor || 'rgba(0, 0, 0, 0.8)',
+            color: currentBanner.adTextColor || '#fff',
+            borderRadius: '4px',
+            padding: '6px 12px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            border: currentBanner.adBorderColor ? `1px solid ${currentBanner.adBorderColor}` : 'none',
+            opacity: currentBanner.adOpacity || 1,
+            cursor: currentBanner.adLink && currentBanner.adLink !== '#' ? 'pointer' : 'default'
+          }}
+          onClick={() => {
+            if (currentBanner.adLink && currentBanner.adLink !== '#') {
+              if (currentBanner.adLink.startsWith('http') || currentBanner.adLink.startsWith('//')) {
+                window.open(currentBanner.adLink, '_blank');
+              } else {
+                window.location.href = currentBanner.adLink;
+              }
+            }
+          }}
+        >
+          {currentBanner.adText || '광고'}
+        </div>
+      )}
+
+      {/* 카테고리 영역 - 다중 카테고리 지원 */}
+      {currentBanner.showCategory && currentBanner.categories && currentBanner.categories.length > 0 && (
+        <div className="category-container" style={{
+          position: 'absolute',
+          zIndex: 10,
+          display: 'flex',
+          gap: '8px',
+          flexWrap: 'wrap'
+        }}>
+          {currentBanner.categories.filter(category => category && category.trim()).map((category, index) => (
+            <div 
+              key={index}
+              className={`category-tag position-${currentBanner.categoryPosition || '1'}`}
+              style={{
+                backgroundColor: currentBanner.categoryBackgroundColor || 'rgba(0, 0, 0, 0.7)',
+                color: currentBanner.categoryTextColor || 'white',
+                padding: '6px 14px',
+                borderRadius: currentBanner.categoryBorderRadius || '20px',
+                fontSize: currentBanner.categoryFontSize || '14px',
+                fontWeight: 'bold',
+                border: currentBanner.categoryBorderColor ? `2px solid ${currentBanner.categoryBorderColor}` : 'none'
+              }}
+            >
+              {category}
+            </div>
+          ))}
         </div>
       )}
 
@@ -630,6 +757,22 @@ const BannerContainer = styled.div`
 | 버튼 너비 | `banner.buttonWidth` | 버튼 너비 (PC) |
 | 버튼 높이 | `banner.buttonHeight` | 버튼 높이 (PC) |
 | 배경 사용 | `banner.hasBackground` | 텍스트 배경 표시 |
+| 광고 표시 | `banner.showAd` | 광고 영역 표시 여부 |
+| 광고 텍스트 | `banner.adText` | 광고 텍스트 |
+| 광고 링크 | `banner.adLink` | 광고 클릭 시 이동할 URL |
+| 광고 위치 | `banner.adPosition` | 광고 위치 (1-9) |
+| 광고 텍스트 색상 | `banner.adTextColor` | 광고 텍스트 색상 |
+| 광고 배경 색상 | `banner.adBackgroundColor` | 광고 배경 색상 |
+| 광고 테두리 색상 | `banner.adBorderColor` | 광고 테두리 색상 |
+| 광고 투명도 | `banner.adOpacity` | 광고 투명도 (0-1) |
+| 카테고리 표시 | `banner.showCategory` | 카테고리 표시 여부 |
+| 카테고리 목록 | `banner.categories` | 카테고리 배열 (다중 입력) |
+| 카테고리 위치 | `banner.categoryPosition` | 카테고리 위치 (1-9) |
+| 카테고리 텍스트 색상 | `banner.categoryTextColor` | 카테고리 텍스트 색상 |
+| 카테고리 배경 색상 | `banner.categoryBackgroundColor` | 카테고리 배경 색상 |
+| 카테고리 테두리 색상 | `banner.categoryBorderColor` | 카테고리 테두리 색상 |
+| 카테고리 폰트 크기 | `banner.categoryFontSize` | 카테고리 폰트 크기 |
+| 카테고리 둥글기 | `banner.categoryBorderRadius` | 카테고리 테두리 둥글기 |
 
 ### ⚠️ 속성 패널에 없지만 로직에서 처리되는 속성:
 | 속성명 | 기본값 | 설명 | 중요도 |
@@ -676,6 +819,60 @@ const BannerContainer = styled.div`
      : (banner.buttonWidth || 'auto')
    ```
 
+5. **줄바꿈 처리 로직**:
+   ```javascript
+   // \n을 실제 줄바꿈으로 변환 (정규식으로 개선)
+   {banner.text && (
+     <h2>
+       {banner.text.split(/\\n|\n/).map((line, index, array) => (
+         <React.Fragment key={index}>
+           {line}
+           {index < array.length - 1 && <br />}
+         </React.Fragment>
+       ))}
+     </h2>
+   )}
+   ```
+
+6. **광고 표시 로직**:
+   ```javascript
+   // 광고는 showAd가 true일 때 텍스트 딱지로 표시
+   {banner.showAd && (
+     <div className="ad-overlay">
+       {banner.adText || '광고'}
+     </div>
+   )}
+   ```
+
+7. **카테고리 표시 로직**:
+   ```javascript
+   // 카테고리는 showCategory와 categories 배열이 있을 때만 표시
+   {banner.showCategory && banner.categories && banner.categories.length > 0 && (
+     <div className="category-container">
+       {banner.categories.filter(category => category && category.trim()).map((category, index) => (
+         <div key={index} className="category-tag">
+           {category}
+         </div>
+       ))}
+     </div>
+   )}
+   ```
+
+8. **반응형 위치 처리**:
+   ```javascript
+   // PC와 모바일에서 다른 위치 사용 가능
+   const adPosition = isMobile 
+     ? (banner.adPositionMobile || banner.adPosition || '3')
+     : (banner.adPositionPc || banner.adPosition || '3');
+   
+   const categoryPosition = isMobile 
+     ? (banner.categoryPositionMobile || banner.categoryPosition || '1')
+     : (banner.categoryPositionPc || banner.categoryPosition || '1');
+   
+   <div className={`ad-overlay position-${adPosition}`}>
+   <div className={`category-container position-${categoryPosition}`}>
+   ```
+
 ## 🔄 마이그레이션 가이드
 
 ### 기존 내부 스킨을 외부 스킨으로 전환
@@ -684,7 +881,7 @@ const BannerContainer = styled.div`
 ```javascript
 // 기존 내부 스킨 (Before)
 const OldBannerComponent = ({ banners, currentIndex, onNext }) => {
-  return <div>...</div>;
+   return <div>...</div>;
 };
 ```
 
@@ -692,12 +889,12 @@ const OldBannerComponent = ({ banners, currentIndex, onNext }) => {
 ```javascript
 // 외부 스킨 (After)
 const NewBannerSkin = ({ data, actions, utils, mode }) => {
-  // props 매핑
-  const banners = data.banners;
-  const currentIndex = data.currentIndex;
-  const onNext = actions.goToNext;
-  
-  return <div>...</div>;
+   // props 매핑
+   const banners = data.banners;
+   const currentIndex = data.currentIndex;
+   const onNext = actions.goToNext;
+
+   return <div>...</div>;
 };
 ```
 
@@ -706,8 +903,8 @@ const NewBannerSkin = ({ data, actions, utils, mode }) => {
 // Before
 <button onClick={() => setCurrentIndex(currentIndex + 1)}>
 
-// After
-<button onClick={actions.goToNext}>
+   // After
+   <button onClick={actions.goToNext}>
 ```
 
 #### 4단계: 유틸리티 활용
@@ -748,12 +945,12 @@ const isMobile = data.isMobile; // 이미 계산된 값 사용
 import { memo, useMemo } from 'react';
 
 const OptimizedSkin = memo(({ data, actions }) => {
-  const visibleBanners = useMemo(() => {
-    // 복잡한 계산 캐싱
-    return data.banners.filter(b => b.visible);
-  }, [data.banners]);
-  
-  return <div>...</div>;
+   const visibleBanners = useMemo(() => {
+      // 복잡한 계산 캐싱
+      return data.banners.filter(b => b.visible);
+   }, [data.banners]);
+
+   return <div>...</div>;
 });
 ```
 
@@ -761,30 +958,30 @@ const OptimizedSkin = memo(({ data, actions }) => {
 ```javascript
 // 키보드 네비게이션 지원
 <div
-  role="region"
-  aria-label="이미지 슬라이더"
-  aria-roledescription="carousel"
+        role="region"
+        aria-label="이미지 슬라이더"
+        aria-roledescription="carousel"
 >
-  <div
-    role="group"
-    aria-label={`${banners.length}개 중 ${currentIndex + 1}번째 슬라이드`}
-  >
-    {/* 컨텐츠 */}
-  </div>
+   <div
+           role="group"
+           aria-label={`${banners.length}개 중 ${currentIndex + 1}번째 슬라이드`}
+   >
+      {/* 컨텐츠 */}
+   </div>
 </div>
 ```
 
 ### 애니메이션 처리
 ```javascript
 // CSS transition 활용
-<div 
-  className={`slider ${data.isTransitioning ? 'transitioning' : ''}`}
-  style={{
-    transform: `translateX(-${currentIndex * 100}%)`,
-    transition: data.isTransitioning 
-      ? `transform ${data.transitionSpeed}ms ease-in-out` 
-      : 'none'
-  }}
+<div
+        className={`slider ${data.isTransitioning ? 'transitioning' : ''}`}
+        style={{
+           transform: `translateX(-${currentIndex * 100}%)`,
+           transition: data.isTransitioning
+                   ? `transform ${data.transitionSpeed}ms ease-in-out`
+                   : 'none'
+        }}
 >
 ```
 

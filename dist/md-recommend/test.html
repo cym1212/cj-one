@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDRecommend Skin Test</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 빌드된 CSS (빈 파일) -->
+    <link rel="stylesheet" href="./poj2-md-recommend.css">
+    
+    <!-- React CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-8 text-center">MDRecommend 스킨 테스트</h1>
+        <div id="root"></div>
+    </div>
+    
+    <!-- 빌드된 UMD 모듈 -->
+    <script src="./poj2-md-recommend.umd.js"></script>
+
+    <script>
+        // UMD 모듈이 로드된 후 컴포넌트 렌더링
+        if (window.Poj2MDRecommend) {
+            const MDRecommend = window.Poj2MDRecommend;
+            
+            // 커스텀 데이터 (선택사항)
+            const customData = {
+                title: "#MD가 추천하는 트렌드상품이에요",
+                products: [
+                    {
+                        id: 1,
+                        status: 'selling',
+                        type: 'consultation',
+                        thumbnails: ['../../public/images/product/product-3.jpg'],
+                        title: '한샘 이지홈 인테리어',
+                        brand: '한샘',
+                        price: 0,
+                        discount: 0,
+                        purchases: 156,
+                        flags: ['broadcast'],
+                        benefits: [
+                            { type: 'coupon', value: '무료 상담' }
+                        ],
+                        likes: 89
+                    },
+                    {
+                        id: 2,
+                        status: 'selling',
+                        type: 'consultation',
+                        thumbnails: ['../../public/images/product/product-3.jpg'],
+                        title: '노랑풍선 큐슈 3일 #온천여행 #가을단풍',
+                        brand: '노랑풍선',
+                        price: 0,
+                        discount: 0,
+                        purchases: 234,
+                        flags: ['broadcast'],
+                        benefits: [
+                            { type: 'card', value: '전문가 상담' }
+                        ],
+                        likes: 145
+                    }
+                ]
+            };
+            
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            // 실제 이미지로 렌더링
+            root.render(React.createElement(MDRecommend, customData));
+            
+            // 또는 커스텀 데이터로 렌더링
+            // root.render(React.createElement(MDRecommend, customData));
+        } else {
+            console.error('MDRecommend component not loaded');
+            document.getElementById('root').innerHTML = '<p>컴포넌트를 로드할 수 없습니다.</p>';
+        }
+    </script>
+</body>
+</html>

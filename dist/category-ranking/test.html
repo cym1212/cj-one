@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CategoryRanking Skin Test</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 빌드된 CSS (Swiper 스타일) -->
+    <link rel="stylesheet" href="./poj2-category-ranking.css">
+    
+    <!-- React CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-8 text-center">CategoryRanking 스킨 테스트</h1>
+        <div id="root"></div>
+    </div>
+    
+    <!-- 빌드된 UMD 모듈 -->
+    <script src="./poj2-category-ranking.umd.js"></script>
+
+    <script>
+        // UMD 모듈이 로드된 후 컴포넌트 렌더링
+        if (window.Poj2CategoryRanking) {
+            const CategoryRanking = window.Poj2CategoryRanking;
+            
+            // 실제 이미지와 아이콘을 사용하는 커스텀 데이터
+            const customData = {
+                title: "카테고리별 랭킹",
+                categories: [
+                    { id: 'fashion', name: '패션', icon: '../../public/images/icon/fashion.png' },
+                    { id: 'sundries', name: '잡화', icon: '../../public/images/icon/sundries.png' },
+                    { id: 'sports', name: '스포츠', icon: '../../public/images/icon/sports.png' },
+                    { id: 'beauty', name: '뷰티', icon: '../../public/images/icon/beauty.png' },
+                    { id: 'food', name: '식품/주방', icon: '../../public/images/icon/food.png' },
+                    { id: 'life-style', name: '유아동', icon: '../../public/images/icon/life-style.png' },
+                    { id: 'life', name: '가구', icon: '../../public/images/icon/life.png' },
+                    { id: 'digital', name: '생활', icon: '../../public/images/icon/digital.png' },
+                    { id: 'life2', name: '가전', icon: '../../public/images/icon/life.png' },
+                    { id: 'fashion2', name: 'TV상품', icon: '../../public/images/icon/fashion.png' },
+                ],
+                products: [
+                    {
+                        id: 4,
+                        status: 'selling',
+                        type: 'product',
+                        brand: '바니스뉴욕',
+                        thumbnails: ['../../public/images/product/product-2.jpg'],
+                        title: '[최초가169,000원] 이반프린지 셔츠 원피스',
+                        price: 129000,
+                        stars: 4.7,
+                        reviews: 118,
+                        flags: ['broadcast', 'weekend', 'delivery', 'return'],
+                        benefits: [{ type: 'card', value: '무이자3' }],
+                    },
+                    {
+                        id: 5,
+                        status: 'selling',
+                        type: 'product',
+                        brand: '바니스뉴욕',
+                        thumbnails: ['../../public/images/product/product-2.jpg'],
+                        title: '[최초가169,000원] 이반프린지 셔츠 원피스',
+                        price: 129000,
+                        discount: 45,
+                        stars: 4.7,
+                        reviews: 550,
+                        flags: ['broadcast', 'delivery', 'return'],
+                        benefits: [
+                            { type: 'coupon', value: '45%' },
+                            { type: 'card', value: '무이자3' },
+                        ],
+                    },
+                    {
+                        id: 6,
+                        status: 'selling',
+                        type: 'product',
+                        brand: '바니스뉴욕',
+                        thumbnails: ['../../public/images/product/product-2.jpg'],
+                        title: '[최초가169,000원] 이반프린지 셔츠 원피스',
+                        price: 129000,
+                        discount: 5,
+                        stars: 2.5,
+                        reviews: 5,
+                        flags: ['broadcast', 'delivery', 'return'],
+                        benefits: [{ type: 'coupon', value: '5%' }],
+                    },
+                    {
+                        id: 7,
+                        status: 'selling',
+                        type: 'product',
+                        brand: '바니스뉴욕',
+                        thumbnails: ['../../public/images/product/product-2.jpg'],
+                        title: '[최초가169,000원] 이반프린지 셔츠 원피스',
+                        price: 129000,
+                        discount: 5,
+                        stars: 2.5,
+                        reviews: 5,
+                        flags: ['broadcast', 'delivery', 'return'],
+                        benefits: [{ type: 'coupon', value: '5%' }],
+                    },
+                    {
+                        id: 8,
+                        status: 'selling',
+                        type: 'product',
+                        brand: '바니스뉴욕',
+                        thumbnails: ['../../public/images/product/product-2.jpg'],
+                        title: '[최초가169,000원] 이반프린지 셔츠 원피스',
+                        price: 129000,
+                        discount: 5,
+                        stars: 2.5,
+                        reviews: 5,
+                        flags: ['broadcast', 'delivery', 'return'],
+                        benefits: [{ type: 'coupon', value: '5%' }],
+                    },
+                    {
+                        id: 9,
+                        status: 'selling',
+                        type: 'product',
+                        brand: '바니스뉴욕',
+                        thumbnails: ['../../public/images/product/product-2.jpg'],
+                        title: '[최초가169,000원] 이반프린지 셔츠 원피스',
+                        price: 129000,
+                        discount: 5,
+                        stars: 2.5,
+                        reviews: 5,
+                        flags: ['broadcast', 'delivery', 'return'],
+                        benefits: [{ type: 'coupon', value: '5%' }],
+                    }
+                ]
+            };
+            
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            // 실제 이미지와 데이터로 렌더링
+            root.render(React.createElement(CategoryRanking, customData));
+        } else {
+            console.error('CategoryRanking component not loaded');
+            document.getElementById('root').innerHTML = '<p>컴포넌트를 로드할 수 없습니다.</p>';
+        }
+    </script>
+</body>
+</html>

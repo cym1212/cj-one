@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POJ2 RecommendService Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <link rel="stylesheet" href="./poj2-recommend-service.css">
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto py-8">
+        <div id="recommend-service-root"></div>
+    </div>
+
+    <script type="module">
+        // 실제 이미지 데이터
+        const testServices = [
+            {
+                id: '1',
+                title: '멤버십 혜택',
+                iconUrl: './../../public/images/icon/membership.png',
+                linkUrl: '/',
+                alt: '멤버십혜택'
+            },
+            {
+                id: '2',
+                title: '출석체크',
+                iconUrl: './../../public/images/icon/attendance-check.png',
+                linkUrl: '/',
+                alt: '출석체크'
+            },
+            {
+                id: '3',
+                title: '혜택',
+                iconUrl: './../../public/images/icon/coupon.png',
+                linkUrl: '/benefits',
+                alt: '혜택'
+            },
+            {
+                id: '4',
+                title: '체험단',
+                iconUrl: './../../public/images/icon/review-group.png',
+                linkUrl: '/review-group',
+                alt: '체험단'
+            },
+            {
+                id: '5',
+                title: '백화점',
+                iconUrl: './../../public/images/icon/department-store.png',
+                linkUrl: '/specialty-shop/department-store',
+                alt: '백화점'
+            }
+        ];
+
+        // RecommendService 컴포넌트
+        const RecommendService = (props = {}) => {
+            const data = {
+                title: 'CJ온스타일 추천 서비스',
+                services: props.services || testServices,
+                className: props.className,
+                style: props.style
+            };
+
+            React.useEffect(() => {
+                if (typeof window !== 'undefined' && !document.querySelector('script[src*="cdn.tailwindcss.com"]')) {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.tailwindcss.com';
+                    script.async = true;
+                    document.head.appendChild(script);
+                }
+            }, []);
+
+            const handleServiceClick = (service) => {
+                console.log('Navigate to:', service.linkUrl);
+                alert(`클릭: ${service.title} -> ${service.linkUrl}`);
+            };
+
+            return React.createElement('section', {
+                className: `poj2-global-wrapper pb-15 lg:pb-30 ${data.className || ''}`,
+                style: data.style
+            }, [
+                React.createElement('div', {
+                    key: 'title',
+                    className: 'text-center mb-8 lg:mb-12'
+                }, [
+                    React.createElement('h2', {
+                        key: 'h2',
+                        className: 'text-xl lg:text-2xl font-bold'
+                    }, data.title)
+                ]),
+                React.createElement('ul', {
+                    key: 'services',
+                    className: 'poj2-recommend-service overflow-x-auto flex items-center min-[907px]:justify-center gap-4 lg:gap-8'
+                }, data.services.map((service) => 
+                    React.createElement('li', {
+                        key: service.id
+                    }, [
+                        React.createElement('a', {
+                            key: 'link',
+                            href: service.linkUrl,
+                            className: 'block',
+                            onClick: (e) => {
+                                e.preventDefault();
+                                handleServiceClick(service);
+                            }
+                        }, [
+                            React.createElement('div', {
+                                key: 'content',
+                                className: 'w-18 lg:w-24 text-center space-y-1 lg:space-y-2'
+                            }, [
+                                React.createElement('img', {
+                                    key: 'img',
+                                    src: service.iconUrl,
+                                    alt: service.alt,
+                                    className: 'w-full h-auto'
+                                }),
+                                React.createElement('p', {
+                                    key: 'text',
+                                    className: 'text-xs lg:text-base'
+                                }, service.title)
+                            ])
+                        ])
+                    ])
+                ))
+            ]);
+        };
+
+        // 렌더링
+        const root = ReactDOM.createRoot(document.getElementById('recommend-service-root'));
+        root.render(React.createElement(RecommendService, {
+            services: testServices
+        }));
+    </script>
+</body>
+</html>

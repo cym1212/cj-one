@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProductSection Skin Test</title>
+    
+    <!-- Tailwind CSS CDN 제거 - 컴포넌트가 자동으로 로드함 -->
+
+     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 빌드된 CSS (빈 파일) -->
+    <link rel="stylesheet" href="./poj2-product-section.css">
+    
+    <!-- React CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-8 text-center">ProductSection 스킨 테스트</h1>
+        <div id="root"></div>
+    </div>
+    
+    <!-- 빌드된 UMD 모듈 -->
+    <script src="./poj2-product-section.umd.js"></script>
+
+    <script>
+        // UMD 모듈이 로드된 후 컴포넌트 렌더링
+        if (window.Poj2ProductSection) {
+            const ProductSection = window.Poj2ProductSection;
+            
+            // 커스텀 데이터 (선택사항)
+            const customData = {
+                title: "오늘의 특가 상품",
+                imageSrc: "https://picsum.photos/1200/200?random=custom",
+                imageAlt: "특가 상품 배너",
+                // products를 제공하지 않으면 기본 더미 데이터 사용
+            };
+            
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            // 기본 데이터로 렌더링
+            root.render(React.createElement(ProductSection));
+            
+            // 또는 커스텀 데이터로 렌더링
+            // root.render(React.createElement(ProductSection, customData));
+        } else {
+            console.error('ProductSection component not loaded');
+            document.getElementById('root').innerHTML = '<p>컴포넌트를 로드할 수 없습니다.</p>';
+        }
+    </script>
+</body>
+</html>
