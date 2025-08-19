@@ -187,6 +187,16 @@ export default function MainSlider({  }: MainSliderProps) {
         };
     }, [isPlaying, isFocused]);
 
+    // Tailwind CDN 자동 로드
+    useEffect(() => {
+        if (typeof window !== 'undefined' && !document.querySelector('script[src*="cdn.tailwindcss.com"]')) {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.tailwindcss.com';
+            script.async = true;
+            document.head.appendChild(script);
+        }
+    }, []);
+
     // 자동 재생 여부 판단
     const shouldAutoplay = useCallback(() => {
         return isPlaying && isVisible && !isFocused;
