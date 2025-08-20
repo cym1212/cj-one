@@ -327,7 +327,7 @@ function MDRecommendComponent(props: MDRecommendProps = {}) {
     return (
         <section className="poj2-md-recommend pb-15 lg:pb-30">
             {/* 타이틀 영역 */}
-            <h2 className="text-xl lg:text-2xl font-bold mb-6 lg:mb-8">
+            <h2 className="text-xl lg:text-2xl font-bold mb-8 lg:mb-10">
                 {data.title || '#MD가 추천하는 트렌드상품이에요'}
             </h2>
             
@@ -356,7 +356,7 @@ function MDRecommendComponent(props: MDRecommendProps = {}) {
                                     <img
                                         src={imageUrl}
                                         alt={productName}
-                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                        className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-105"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = '../../public/images/product/product-3.jpg';
                                         }}

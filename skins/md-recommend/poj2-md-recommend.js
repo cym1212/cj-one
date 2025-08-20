@@ -223,7 +223,7 @@ function MDRecommendComponent(props = {}) {
         // 타이틀 영역
         React.createElement('h2', {
             key: 'title',
-            className: 'text-xl lg:text-2xl font-bold mb-6 lg:mb-8'
+            className: 'text-xl lg:text-2xl font-bold mb-8 lg:mb-10'
         }, data.title || '#MD가 추천하는 트렌드상품이에요'),
         
         // 상품 그리드 - 처음 2개만 표시

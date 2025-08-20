@@ -296,7 +296,7 @@ function RecommendServiceComponent(props: RecommendServiceProps = {}) {
                             <img
                                 src={service.iconUrl}
                                 alt={service.alt || service.title}
-                                className="w-full h-auto"
+                                className="w-full h-auto transition-transform duration-300 ease-out hover:scale-105"
                                 onError={(e) => {
                                     // 이미지 로드 실패 시 기본 이미지로 대체
                                     (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100x100?text=No+Image';

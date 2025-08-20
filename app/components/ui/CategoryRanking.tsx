@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, FreeMode } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
@@ -6,7 +6,43 @@ import type { Swiper as SwiperType } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-// 실제 이미지를 사용하는 더미 데이터
+// QuickMenu 확장 API를 사용하는 CategoryRanking 컴포넌트
+// toLocaleString을 사용하지 않는 완전히 안전한 숫자 포맷팅 함수
+const safeNumberFormat = (value: any): string => {
+    // null, undefined, 빈 문자열 체크
+    if (value === null || value === undefined || value === '') {
+        return '0';
+    }
+    
+    // 객체 타입 체크
+    if (typeof value === 'object' && value !== null) {
+        return '0';
+    }
+    
+    // 숫자 변환
+    let num: number;
+    try {
+        num = Number(value);
+    } catch {
+        return '0';
+    }
+    
+    // NaN, Infinity 체크
+    if (isNaN(num) || !isFinite(num)) {
+        return '0';
+    }
+    
+    // toLocaleString 대신 직접 포맷팅 - 절대 오류가 나지 않음
+    try {
+        const integerPart = Math.floor(Math.abs(num));
+        const formatted = integerPart.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return num < 0 ? '-' + formatted : formatted;
+    } catch {
+        return String(Math.floor(Math.abs(num)));
+    }
+};
+
+// 비결에서만 사용할 더미 데이터
 const PRODUCT_DATA = [
     {
         id: 4,
@@ -134,6 +170,11 @@ interface Product {
     stars?: number;
     reviews?: number;
     likes?: number;
+    // 문서 기준 추가 필드
+    stockCount?: number;
+    hasDiscount?: boolean;
+    description?: string;
+    categoryId?: number;
 }
 
 interface Category {
@@ -142,23 +183,117 @@ interface Category {
     icon: string;
 }
 
-// Link 대체 컴포넌트
-const Link = ({ to, children, ...props }: any) => (
-    <a href={to} onClick={(e) => { e.preventDefault(); console.log('Navigate to:', to); }} {...props}>
-        {children}
-    </a>
-);
+// QuickMenu 데이터 구조 (QuickMenu + 상품리스트 통합 API)
+interface QuickMenuData {
+    // 기본 QuickMenu 데이터
+    displayItems: Array<{
+        id: string;
+        categoryId: number;
+        categoryName: string;
+        imageUrl?: string;
+        customImageUrl?: string;
+        linkUrl?: string;
+        target?: string;
+    }>;
+    topCategories?: any[];
+    loading: boolean;
+    error?: string;
+    
+    // 확장 데이터 (enableProductDisplay가 true일 때만)
+    selectedCategoryId?: number;
+    products?: Array<{
+        id: number;
+        name: string;
+        title?: string;
+        price?: number;
+        newPrice?: number;
+        thumbnail?: string;
+        image?: string;
+        stockCount?: number;
+        hasDiscount?: boolean;
+        discountRate?: number;
+        description?: string;
+        categoryId?: number;
+        brand?: string;
+        flags?: string[];
+        benefits?: Array<{ type: string; value: string }>;
+        stars?: number;
+        reviews?: number;
+        config?: {
+            default_price?: number;
+            discounted_price?: number;
+            img_url?: string;
+            main_image?: string;
+            stock_count?: number;
+        };
+        // 기타 속성
+        [key: string]: any;
+    }>;
+    productsLoading?: boolean;
+    productsTotalCount?: number;
+}
 
-// ImageBox 컴포넌트 인라인화
-const ImageBox = ({ src, alt = '' }: { src: string; alt?: string }) => (
-    <div className="poj2-image-box relative overflow-hidden w-full h-full">
-        <img 
-            src={src} 
-            alt={alt} 
-            className="w-full h-full object-cover transition-transform duration-300 ease-out hover:scale-103" 
-        />
-    </div>
-);
+interface QuickMenuActions {
+    handleItemClick: (item: any) => void;
+    // Redux fetchProducts 액션 (문서 기준)
+    fetchProducts?: (params: {
+        category_id?: number;
+        per_page?: number;
+        page?: number;
+        include_product_ids?: number[];
+        exclude_product_ids?: number[];
+    }) => void;
+}
+
+// ComponentSkinProps 인터페이스 - QuickMenu 확장 API 호환
+export interface ComponentSkinProps {
+    data: QuickMenuData;
+    actions: QuickMenuActions;
+    componentData?: {
+        componentProps?: {
+            enableProductDisplay?: boolean;
+            productsPerRow?: number;
+            showProductPrice?: boolean;
+            maxProductsToShow?: number;
+            initialCategoryId?: number;
+            productListClassName?: string;
+            categoryItems?: any[];
+            columnsPerRow?: number;
+            showCategoryName?: boolean;
+        };
+    };
+    options?: Record<string, any>;
+    mode?: 'editor' | 'preview' | 'production';
+    utils?: {
+        t: (key: string) => string;
+        navigate: (path: string) => void;
+        formatCurrency: (amount: number) => string;
+        formatDate: (date: Date) => string;
+        getAssetUrl: (path: string) => string;
+        cx: (...classes: string[]) => string;
+    };
+    app?: {
+        user?: any;
+        company?: any;
+        currentLanguage?: string;
+        theme?: any;
+    };
+    editor?: {
+        isSelected: boolean;
+        onSelect: () => void;
+        onEdit: () => void;
+        onDelete: () => void;
+    };
+}
+
+export interface CategoryRankingProps extends Partial<ComponentSkinProps> {
+    // 외부에서 주입받을 수 있는 추가 props
+    title?: string;
+    categories?: Category[];
+    products?: Product[];
+    className?: string;
+    style?: React.CSSProperties;
+}
 
 // 아이콘 컴포넌트들 인라인화
 const LikeIcon = ({ tailwind }: { tailwind?: string }) => (
@@ -185,12 +320,26 @@ const ArrowRightIcon = ({ tailwind }: { tailwind?: string }) => (
     </svg>
 );
 
+// ImageBox 컴포넌트 인라인화
+const ImageBox = ({ src, alt = '' }: { src: string; alt?: string }) => (
+    <div className="poj2-image-box relative overflow-hidden w-full h-full">
+        <img 
+            src={src} 
+            alt={alt} 
+            className="w-full h-full object-cover transition-transform duration-300 ease-out hover:scale-103" 
+        />
+    </div>
+);
+
 // HomeSectionTitle 컴포넌트 인라인화
-function HomeSectionTitle({ title, description }: { title: string; description?: string }) {
+function HomeSectionTitle({ title, description }: { title: any; description?: any }) {
+    const safeTitle = typeof title === 'string' ? title : (title ? String(title) : '카테고리별 랭킹');
+    const safeDescription = typeof description === 'string' ? description : (description ? String(description) : undefined);
+    
     return (
         <div className="poj2-home-section-title space-y-1 mb-4 lg:mb-5">
-            <h2 className="text-lg lg:text-xl font-bold">{title}</h2>
-            {description && <p className="text-xs lg:text-sm text-description">{description}</p>}
+            <h2 className="text-lg lg:text-xl font-bold">{safeTitle}</h2>
+            {safeDescription && <p className="text-xs lg:text-sm text-description">{safeDescription}</p>}
         </div>
     );
 }
@@ -204,15 +353,111 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
     return chunks;
 }
 
-function CategorySlider({ data }: { data: Category[] }) {
+function CategorySlider({ 
+    data, 
+    displayItems,  // 원본 QuickMenu displayItems 추가
+    selectedCategoryId, 
+    hasExternalData, 
+    enableProductDisplay, 
+    actions,
+    maxProductsToShow = 20
+}: { 
+    data: Category[]; 
+    displayItems?: any[];  // 원본 QuickMenu displayItems
+    selectedCategoryId?: number; 
+    hasExternalData: boolean; 
+    enableProductDisplay: boolean; 
+    actions?: QuickMenuActions;
+    maxProductsToShow?: number;
+}) {
     const swiperRef = useRef<SwiperType | null>(null);
     const categoryChunks = chunkArray(data, 5);
     const [isBeginning, setIsBeginning] = useState(true);
     const [isEnd, setIsEnd] = useState(false);
     const [activeCategoryId, setActiveCategoryId] = useState(data[0]?.id || '');
 
-    const handleCategoryClick = (categoryId: string) => {
+    const handleCategoryClick = (categoryId: string, category: Category) => {
+        console.log('🔵 카테고리 클릭됨:', categoryId, category);
+        console.log('🔵 displayItems 존재:', !!displayItems, displayItems);
+        console.log('🔵 enableProductDisplay:', enableProductDisplay);
+        console.log('🔵 actions:', actions);
+        console.log('🔵 actions?.handleItemClick 존재:', !!actions?.handleItemClick);
+        console.log('🔵 actions?.fetchProducts 존재:', !!actions?.fetchProducts);
+        
         setActiveCategoryId(categoryId);
+        
+        // fetchProducts가 있으면 직접 호출 (handleItemClick 없어도)
+        if (actions?.fetchProducts && enableProductDisplay) {
+            // displayItems에서 카테고리 ID 찾기
+            const quickMenuItem = displayItems?.find(item => {
+                const itemCategoryId = String(item.categoryId || item.id);
+                return itemCategoryId === categoryId;
+            });
+            
+            const categoryIdNum = quickMenuItem?.categoryId || parseInt(categoryId);
+            console.log('📦 fetchProducts 직접 호출, category_id:', categoryIdNum);
+            
+            if (categoryIdNum === -1) {
+                // 전체 카테고리 선택
+                actions.fetchProducts({ per_page: maxProductsToShow });
+            } else {
+                // 특정 카테고리 선택
+                actions.fetchProducts({ 
+                    category_id: categoryIdNum, 
+                    per_page: maxProductsToShow 
+                });
+            }
+            
+            // handleItemClick이 있으면 호출 (옵션)
+            if (actions.handleItemClick && quickMenuItem) {
+                console.log('✅ handleItemClick도 호출:', quickMenuItem);
+                actions.handleItemClick(quickMenuItem);
+            }
+            return;
+        }
+        
+        // 기존 로직 (handleItemClick 필수인 경우)
+        if (actions?.handleItemClick && enableProductDisplay && displayItems) {
+            // displayItems에서 실제 QuickMenuItem 찾기
+            const quickMenuItem = displayItems.find(item => {
+                const itemCategoryId = String(item.categoryId || item.id);
+                console.log('🔍 비교중:', itemCategoryId, '===', categoryId, itemCategoryId === categoryId);
+                return itemCategoryId === categoryId;
+            });
+            
+            if (quickMenuItem) {
+                console.log('✅ QuickMenuItem 찾음:', quickMenuItem);
+                actions.handleItemClick(quickMenuItem);  // 전체 QuickMenuItem 객체 전달
+                
+                // fetchProducts 액션 호출
+                if (actions.fetchProducts) {
+                    const categoryIdNum = quickMenuItem.categoryId || parseInt(quickMenuItem.id);
+                    console.log('📦 fetchProducts 호출, category_id:', categoryIdNum);
+                    
+                    if (categoryIdNum === -1) {
+                        // 전체 카테고리 선택
+                        actions.fetchProducts({ per_page: maxProductsToShow });
+                    } else {
+                        // 특정 카테고리 선택
+                        actions.fetchProducts({ 
+                            category_id: categoryIdNum, 
+                            per_page: maxProductsToShow 
+                        });
+                    }
+                } else {
+                    console.log('⚠️ fetchProducts 액션이 없음');
+                }
+            } else {
+                console.log('❌ QuickMenuItem 못 찾음, categoryId:', categoryId);
+                console.log('❌ displayItems:', displayItems);
+            }
+        } else {
+            console.log('⚠️ 조건 미충족:', {
+                'actions?.handleItemClick': !!actions?.handleItemClick,
+                enableProductDisplay,
+                'displayItems 존재': !!displayItems
+            });
+        }
     };
     
     return (
@@ -254,9 +499,14 @@ function CategorySlider({ data }: { data: Category[] }) {
                                 <button
                                     key={category.id}
                                     className="flex flex-col items-center space-y-1 max-sm:w-[18%] w-[60px]"
-                                    onClick={() => handleCategoryClick(category.id)}
+                                    onClick={() => handleCategoryClick(category.id, category)}
                                 >
-                                    <div className={`flex items-center justify-center aspect-square w-full rounded-full overflow-hidden border transition-colors ${category.id === activeCategoryId ? 'border-2 border-black bg-white' : 'border-border bg-border/10'}`}>
+                                    <div className={`flex items-center justify-center aspect-square w-full rounded-full overflow-hidden border transition-colors ${
+                                        (hasExternalData && selectedCategoryId === parseInt(category.id)) || 
+                                        (!hasExternalData && category.id === activeCategoryId) 
+                                            ? 'border-2 border-black bg-white' 
+                                            : 'border-border bg-border/10'
+                                    }`}>
                                         <img
                                             src={category.icon}
                                             alt={category.name}
@@ -292,18 +542,34 @@ function CategorySlider({ data }: { data: Category[] }) {
     );
 }
 
-// ProductCard 컴포넌트 인라인화 (visibleLikeButton 포함)
-function ProductCard({ data, visibleLikeButton }: { data: Product; visibleLikeButton?: boolean }) {
+// ProductCard 컴포넌트 인라인화 (QuickMenu API 호환)
+function ProductCard({ 
+    data, 
+    visibleLikeButton, 
+    actions, 
+    utils 
+}: { 
+    data: Product; 
+    visibleLikeButton?: boolean;
+    actions?: QuickMenuActions;
+    utils?: ComponentSkinProps['utils'];
+}) {
     const { id, type, title, brand, price, thumbnails, discount, purchases, flags, benefits, stars, reviews } = data;
 
     const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        console.log(`${title} 상품을 찜했습니다`);
+    };
+    
+    const handleProductClick = () => {
+        const productUrl = `/product/${id}`;
+        if (utils?.navigate) {
+            utils.navigate(productUrl);
+        }
     };
 
     return (
         <div className="poj2-product-card">
-            <Link to={`/product/${id}`} className="block">
+            <div className="block cursor-pointer" onClick={handleProductClick}>
                 <div className="poj2-product-card-thumb relative">
                     <Thumbnail
                         title={title}
@@ -345,7 +611,7 @@ function ProductCard({ data, visibleLikeButton }: { data: Product; visibleLikeBu
                         <Review stars={stars} reviews={reviews} />
                     </div>
                 )}
-            </Link>
+            </div>
         </div>
     );
 }
@@ -373,33 +639,73 @@ function Thumbnail({ title, brand, thumbnails }: { title: string; thumbnails: st
 
 function PriceInfo({ type, brand, title, price, discount, purchases }: { type: ProductType; brand?: string; title: string; price?: number; discount?: number; purchases?: number }) {
     const isSpecial = type === 'special';
-    const discountPrice = price && discount && price * (1 - discount / 100);
-
-    return (
-        <div>
-            <h3 className="text-xs lg:text-sm leading-sm">
-                {brand && <span className="pr-1 font-bold">{brand}</span>}
-                {title}
-            </h3>
-            <div className="my-1">
-                {discount && (
-                    <p className="text-xs text-description line-through">
-                        {price?.toLocaleString()}원{isSpecial && '~'}
-                    </p>
-                )}
-                <div className="flex items-end justify-between">
-                    <div className="flex items-center gap-1 lg:gap-1.5">
-                        {discount && <p className="text-sm lg:text-base font-bold text-discount">{discount}%</p>}
-                        <p>
-                            <span className="text-sm lg:text-base font-bold">{discountPrice?.toLocaleString() || price?.toLocaleString()}</span>
-                            <span className="text-xs">원</span>
-                        </p>
+    
+    try {
+        // 안전한 가격 처리 - 추가 검증
+        const safePrice = typeof price === 'number' && !isNaN(price) ? price : 0;
+        const safeDiscount = typeof discount === 'number' && !isNaN(discount) ? discount : 0;
+        const safePurchases = typeof purchases === 'number' && !isNaN(purchases) ? purchases : 0;
+        
+        const discountPrice = safeDiscount > 0 ? safePrice * (1 - safeDiscount / 100) : safePrice;
+        const safeDiscountPrice = typeof discountPrice === 'number' && !isNaN(discountPrice) && isFinite(discountPrice) ? discountPrice : safePrice;
+        
+        // 가격이 0이면 상담 상품으로 처리
+        if (safePrice === 0) {
+            return (
+                <div>
+                    <h3 className="text-xs lg:text-sm leading-sm">
+                        {brand && <span className="pr-1 font-bold">{brand}</span>}
+                        {title}
+                    </h3>
+                    <div className="my-1">
+                        <p className="text-sm lg:text-base text-description">상담 상품</p>
                     </div>
-                    {isSpecial && purchases && <p className="text-[10px] text-description">{purchases.toLocaleString()} 구매</p>}
+                </div>
+            );
+        }
+
+        return (
+            <div>
+                <h3 className="text-xs lg:text-sm leading-sm">
+                    {brand && <span className="pr-1 font-bold">{brand}</span>}
+                    {title}
+                </h3>
+                <div className="my-1">
+                    {safeDiscount > 0 && (
+                        <p className="text-xs text-description line-through">
+                            {safeNumberFormat(safePrice)}원{isSpecial && '~'}
+                        </p>
+                    )}
+                    <div className="flex items-end justify-between">
+                        <div className="flex items-center gap-1 lg:gap-1.5">
+                            {safeDiscount > 0 && <p className="text-sm lg:text-base font-bold text-discount">{safeNumberFormat(safeDiscount)}%</p>}
+                            <p>
+                                <span className="text-sm lg:text-base font-bold">{safeNumberFormat(safeDiscountPrice >= 0 ? Math.floor(safeDiscountPrice) : 0)}</span>
+                                <span className="text-xs">원</span>
+                            </p>
+                        </div>
+                        {isSpecial && safePurchases > 0 && (
+                            <p className="text-[10px] text-description">{safeNumberFormat(safePurchases)} 구매</p>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    } catch (error) {
+        console.warn('PriceInfo error:', error, 'props:', { type, brand, title, price, discount, purchases });
+        // 에러 발생 시 최소한의 정보라도 표시
+        return (
+            <div>
+                <h3 className="text-xs lg:text-sm leading-sm">
+                    {brand && <span className="pr-1 font-bold">{brand}</span>}
+                    {title || '상품 정보 오류'}
+                </h3>
+                <div className="my-1">
+                    <p className="text-sm lg:text-base text-description">가격 정보 오류</p>
+                </div>
+            </div>
+        );
+    }
 }
 
 function Flags({ flags }: { flags: ProductFlags[] }) {
@@ -448,18 +754,187 @@ function Review({ stars, reviews }: { stars: number; reviews: number }) {
     );
 }
 
-// 메인 CategoryRanking 컴포넌트
-export interface CategoryRankingProps {
-    title?: string;
-    categories?: Category[];
-    products?: Product[];
-}
+// 데이터 완전 정화 함수 - 모든 위험한 값들을 제거
+const sanitizeData = (data: any): any => {
+    if (data === null || data === undefined) {
+        return {};
+    }
+    
+    if (Array.isArray(data)) {
+        return data.map(sanitizeData).filter(item => item !== null && item !== undefined);
+    }
+    
+    if (typeof data === 'object') {
+        const sanitized: any = {};
+        for (const key in data) {
+            if (data.hasOwnProperty(key)) {
+                const value = data[key];
+                // 함수나 위험한 객체는 제거
+                if (typeof value === 'function') {
+                    continue;
+                }
+                sanitized[key] = sanitizeData(value);
+            }
+        }
+        return sanitized;
+    }
+    
+    // 원시값은 그대로 반환
+    return data;
+};
 
-export default function CategoryRanking({ 
-    title = "카테고리별 랭킹",
-    categories = CATEGORY_DATA,
-    products = PRODUCT_DATA
-}: CategoryRankingProps) {
+// 메인 CategoryRanking 컴포넌트 로직
+function CategoryRankingComponent(props: CategoryRankingProps = {}) {
+    // 완전한 오류 방지를 위한 전체 컴포넌트 try-catch
+    try {
+        // props에서 actions를 먼저 분리
+        const { actions } = props;
+        
+        // sanitizedProps를 useMemo로 메모이제이션하여 무한 렌더링 방지
+        const sanitizedProps = useMemo(() => {
+            const { actions: _, ...otherProps } = props;  // actions를 제외한 나머지
+            const sanitizedOtherProps = sanitizeData(otherProps);
+            return {
+                ...sanitizedOtherProps,
+                actions: actions  // 원본 actions 그대로 사용 (함수 보존)
+            };
+        }, [props, actions]);
+        
+        const hasExternalData = !!(sanitizedProps.data);
+        const hasExternalActions = !!(actions);  // 원본 actions 체크
+        const mode = sanitizedProps.mode || 'production';
+        const componentProps = sanitizedProps.componentData?.componentProps || {};
+        
+        // 실제 확장 기능 활성화 여부는 fetchProducts 액션 존재로 확인
+        const hasExtendedData = !!(sanitizedProps.data?.products !== undefined);  // 상품 데이터가 있는지
+        const hasFetchProducts = !!(actions?.fetchProducts);  // 원본 actions에서 fetchProducts 체크
+        const isProductDisplayEnabled = hasExtendedData || hasFetchProducts;  // 둘 중 하나라도 있으면 활성화
+        
+        // 디버깅 정보 출력
+
+    // 웹빌더에서 데이터를 받았는지 확인 - 조건 수정
+    // fetchProducts가 없어도 displayItems가 있으면 진행
+    if (hasExternalData && !hasFetchProducts && !sanitizedProps.data?.displayItems) {
+        return (
+            <div className="pb-15 lg:pb-30">
+                <HomeSectionTitle title={sanitizedProps.title || "카테고리별 랭킹"} />
+                <div className="text-center py-8">
+                    <p className="text-gray-600">상품 데이터를 로드 중입니다...</p>
+                    <p className="text-gray-500 text-sm mt-2">fetchProducts: {String(hasFetchProducts)}</p>
+                    <p className="text-gray-500 text-sm">displayItems: {sanitizedProps.data?.displayItems?.length || 0}</p>
+                </div>
+            </div>
+        );
+    }
+    
+    // 데이터 매핑 및 변환
+    const convertQuickMenuToCategory = (displayItems: any[]): Category[] => {
+        return displayItems.map(item => ({
+            id: String(item.categoryId || item.id),
+            name: typeof item.categoryName === 'string' ? item.categoryName : '카테고리',
+            icon: item.customImageUrl || item.imageUrl || '/images/icon/default.png'  // customImageUrl 우선순위
+        }));
+    };
+    
+    const convertApiProductToLocal = (apiProducts: any[]): Product[] => {
+        if (!Array.isArray(apiProducts)) {
+            return [];
+        }
+        
+        return apiProducts.map(product => {
+            try {
+                if (!product || typeof product !== 'object') {
+                    return null;
+                }
+                
+                // 웹빌더 실제 데이터 구조에 맞춘 매핑
+                const originalPrice = typeof product.price === 'number' ? product.price : (parseFloat(product.price) || 0);
+                const newPrice = typeof product.newPrice === 'number' ? product.newPrice : (parseFloat(product.newPrice) || 0);
+                const salePrice = newPrice > 0 ? newPrice : originalPrice;  // 할인가가 있으면 할인가, 없으면 원가
+                const discountRateRaw = product.hasDiscount && typeof product.discountRate === 'number' ? product.discountRate : 0;
+                
+                // 모든 숫자 속성들을 안전하게 변환 - parseFloat 사용
+                const safeId = typeof product.id === 'number' ? product.id : (parseFloat(product.id) || Math.random() * 1000000);
+                const safeStars = product.stars ? (typeof product.stars === 'number' ? product.stars : parseFloat(product.stars)) : undefined;
+                const safeReviews = product.reviews ? (typeof product.reviews === 'number' ? product.reviews : parseFloat(product.reviews)) : undefined;
+                const safeStockCount = typeof product.stockCount === 'number' ? product.stockCount : (parseFloat(product.stockCount) || 0);
+                const safeCategoryId = product.categoryId ? (typeof product.categoryId === 'number' ? product.categoryId : parseFloat(product.categoryId)) : undefined;
+                
+                return {
+                    id: safeId,
+                    status: 'selling' as const,
+                    type: 'product' as const,
+                    thumbnails: [
+                        product.thumbnail || '/images/product/product-2.jpg'
+                    ],
+                    title: typeof product.name === 'string' ? product.name : (typeof product.title === 'string' ? product.title : '상품명 없음'),
+                    brand: typeof product.brand === 'string' ? product.brand : undefined,
+                    price: salePrice,
+                    discount: discountRateRaw > 0 ? discountRateRaw : undefined,
+                    stars: safeStars || 4,  // 기본값 4
+                    reviews: safeReviews || 0,  // 기본값 0
+                    flags: Array.isArray(product.flags) ? product.flags.filter((flag: string) => 
+                        ['broadcast', 'delivery', 'weekend', 'return'].includes(flag)
+                    ) as ProductFlags[] : [],
+                    benefits: Array.isArray(product.benefits) ? product.benefits.map((benefit: any) => ({
+                        type: benefit.type === 'coupon' ? 'coupon' as const : 'card' as const,
+                        value: String(benefit.value || '')
+                    })) : [],
+                    // 추가 필드
+                    stockCount: safeStockCount,
+                    hasDiscount: Boolean(product.hasDiscount),
+                    description: String(product.description || ''),
+                    categoryId: safeCategoryId
+                };
+            } catch (error) {
+                console.warn('convertApiProductToLocal error:', error, 'product:', product);
+                return null;
+            }
+        }).filter(Boolean) as Product[]; // null 값 제거
+    };
+    
+    // 데이터 구성
+    const categories: Category[] = hasExternalData && sanitizedProps.data?.displayItems
+        ? convertQuickMenuToCategory(sanitizedProps.data.displayItems)
+        : sanitizedProps.categories || CATEGORY_DATA;
+        
+    const products: Product[] = hasExternalData && sanitizedProps.data?.products
+        ? convertApiProductToLocal(sanitizedProps.data.products)
+        : sanitizedProps.products || PRODUCT_DATA;
+        
+    const title = typeof sanitizedProps.title === 'string' ? sanitizedProps.title : "카테고리별 랭킹";
+    const loading = hasExternalData ? sanitizedProps.data?.loading : false;
+    const productsLoading = hasExternalData ? sanitizedProps.data?.productsLoading : false;
+    const selectedCategoryId = hasExternalData ? sanitizedProps.data?.selectedCategoryId : null;
+    
+    // finalActions를 useMemo로 메모이제이션하여 무한 렌더링 방지
+    const finalActions = useMemo(() => {
+        return hasExternalActions ? actions : {
+            handleItemClick: (item: any) => {
+            }
+        };
+    }, [hasExternalActions, actions]);
+
+    // 초기 상품 로드 - initialCategoryId가 없어도 전체 상품 로드
+    useEffect(() => {
+        if (hasExternalData && hasFetchProducts && actions?.fetchProducts) {
+            const initialId = componentProps.initialCategoryId;
+            
+            if (initialId !== undefined && initialId !== null) {
+                // 특정 카테고리
+                actions.fetchProducts({
+                    category_id: initialId,
+                    per_page: componentProps.maxProductsToShow || 20
+                });
+            } else {
+                // 전체 상품 (category_id 없이)
+                actions.fetchProducts({
+                    per_page: componentProps.maxProductsToShow || 20
+                });
+            }
+        }
+    }, []); // 빈 배열로 변경 - 초기 로드는 한 번만 실행
+
     // Tailwind CDN 자동 로드
     useEffect(() => {
         if (typeof window !== 'undefined' && !document.querySelector('script[src*="cdn.tailwindcss.com"]')) {
@@ -485,20 +960,106 @@ export default function CategoryRanking({
     }, []);
 
     return (
-        <div className="pb-15 lg:pb-30">
+        <div className={`pb-15 lg:pb-30 ${sanitizedProps.className || ''}`} style={sanitizedProps.style}>
             <HomeSectionTitle title={title} />
             <div className="z-2 sticky top-0 h-fit py-3 mb-4 lg:mb-7 bg-white">
-                <CategorySlider data={categories} />
+                <CategorySlider 
+                    data={categories}
+                    displayItems={sanitizedProps.data?.displayItems}  // 원본 displayItems 전달
+                    selectedCategoryId={selectedCategoryId}
+                    hasExternalData={hasExternalData}
+                    enableProductDisplay={isProductDisplayEnabled}
+                    actions={finalActions}
+                    maxProductsToShow={componentProps.maxProductsToShow || 20}
+                />
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 sm:gap-x-5 gap-y-8 lg:gap-y-10">
-                {products.map((product) => (
-                    <ProductCard
-                        key={product.id}
-                        data={product}
-                        visibleLikeButton
-                    />
-                ))}
+            
+            {/* 상품 리스트 */}
+            <div className="product-list">
+                {productsLoading ? (
+                    <div className="flex justify-center items-center py-20">
+                        <div className="text-lg">상품을 불러오는 중...</div>
+                    </div>
+                ) : products && products.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 sm:gap-x-5 gap-y-8 lg:gap-y-10">
+                        {products.filter(product => {
+                            // 강화된 제품 유효성 검사
+                            if (!product || typeof product !== 'object') {
+                                return false;
+                            }
+                            if (!product.id || (typeof product.id !== 'number' && typeof product.id !== 'string')) {
+                                return false;
+                            }
+                            if (!product.title || typeof product.title !== 'string') {
+                                return false;
+                            }
+                            // price가 undefined이거나 null인 경우도 허용 (상담 상품)
+                            if (product.price !== undefined && product.price !== null && typeof product.price !== 'number') {
+                                return false;
+                            }
+                            return true;
+                        }).map((product) => (
+                            <ProductCard
+                                key={product.id}
+                                data={product}
+                                visibleLikeButton
+                                actions={finalActions}
+                                utils={sanitizedProps.utils}
+                            />
+                        ))}
+                    </div>
+                ) : hasExternalData && selectedCategoryId ? (
+                    <div className="text-center py-20">
+                        <p className="text-gray-600">선택한 카테고리에 상품이 없습니다.</p>
+                    </div>
+                ) : hasExternalData ? (
+                    <div className="text-center py-20">
+                        <p className="text-gray-600">카테고리를 선택해주세요.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 sm:gap-x-5 gap-y-8 lg:gap-y-10">
+                        {PRODUCT_DATA.map((product) => (
+                            <ProductCard
+                                key={product.id}
+                                data={product}
+                                visibleLikeButton
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
+    } catch (error) {
+        console.error('CategoryRanking component error:', error);
+        // 오류 발생 시 안전한 fallback UI 반환
+        return (
+            <div className="pb-15 lg:pb-30">
+                <div className="text-center py-20">
+                    <p className="text-gray-600">컴포넌트 렌더링 오류가 발생했습니다.</p>
+                    <p className="text-sm text-gray-500 mt-2">잠시 후 다시 시도해주세요.</p>
+                </div>
+            </div>
+        );
+    }
 }
+
+// UMD 빌드를 위한 래퍼 컴포넌트
+const CategoryRanking = (props: any) => {
+    // props를 그대로 사용 (강제 설정 제거!)
+    const { data, actions, componentProps, componentData, ...restProps } = props;
+    
+
+    // 웹빌더에서 받은 props를 그대로 전달
+    return <CategoryRankingComponent {...props} />;
+};
+
+// CategoryRanking의 기본 설정을 export
+export const CategoryRankingConfig = {
+    enableProductDisplay: true,  // 필수! QuickMenu 상품 표시 기능 활성화
+    maxProductsToShow: 20,
+    showProductPrice: true,
+    productsPerRow: 3
+};
+
+export default CategoryRanking;

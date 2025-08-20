@@ -317,7 +317,7 @@ const ImageBox = ({ src, alt = '' }: { src: string; alt?: string }) => {
             <img 
                 src={src} 
                 alt={alt} 
-                className={`w-full h-full object-cover transition-transform duration-300 ease-out hover:scale-105 ${
+                className={`w-full h-full object-cover object-center transition-transform duration-300 ease-out hover:scale-105 ${
                     isLoading ? 'opacity-0' : 'opacity-100'
                 }`}
                 onLoad={() => setIsLoading(false)}
@@ -365,45 +365,17 @@ function ProductCard({
     actions: ProductListActions;
     activeRollingText?: boolean;
 }) {
-    // 실제 API 응답에서 썸네일 이미지 추출 (description에서 추가 이미지 파싱)
+    // 웹빌더에서 수정된 additionalImages 구조에 맞춘 이미지 처리
     const getThumbnails = () => {
-        const images = [];
-        
-        // 1. 메인 이미지 추가
-        const mainImage = product.image || product.config?.main_image || product.config?.img_url;
-        if (mainImage) images.push(mainImage);
-        
-        // 2. imageTwo 추가 (메인 이미지와 다른 경우에만)
-        if (product.imageTwo && product.imageTwo !== mainImage) {
-            images.push(product.imageTwo);
-        }
-        
-        // 3. additionalImages 배열에서 추가 (중복 제외)
+        // 웹빌더에서 이미 중복 제거된 additionalImages를 우선 사용
         if (product.additionalImages && product.additionalImages.length > 0) {
-            product.additionalImages.forEach(imgUrl => {
-                if (imgUrl && !images.includes(imgUrl)) {
-                    images.push(imgUrl);
-                }
-            });
+            // additionalImages에 이미 메인 이미지가 포함되어 있으므로 그대로 사용
+            return product.additionalImages.slice(0, 3);
         }
         
-        // 4. description HTML에서 img 태그 추출
-        if (product.description && images.length < 3) {
-            const imgRegex = /<img[^>]*src=['""]([^'""]*)['""][^>]*>/g;
-            let match;
-            while ((match = imgRegex.exec(product.description)) !== null && images.length < 3) {
-                const imgUrl = match[1];
-                if (imgUrl && !images.includes(imgUrl)) {
-                    images.push(imgUrl);
-                }
-            }
-        }
-        
-        // 5. 최대 3개까지만 사용
-        const finalImages = images.slice(0, 3);
-        
-
-        return finalImages.length > 0 ? finalImages : ['https://via.placeholder.com/400'];
+        // additionalImages가 빈 배열이면 메인 이미지만 사용
+        const mainImage = product.image || product.config?.main_image || product.config?.img_url;
+        return mainImage ? [mainImage] : ['https://via.placeholder.com/400'];
     };
     
     const thumbnails = getThumbnails();
@@ -463,21 +435,23 @@ function ProductCard({
 
 function Thumbnail({ title, brand, thumbnails, tagImage }: { title: string; thumbnails: string[]; brand?: string; tagImage?: string }) {
     return (
-        <div className="overflow-hidden relative grid grid-cols-3 gap-1 aspect-[16/10]">
-            {thumbnails.length === 1 && (
-                <div className="col-span-2 row-span-2">
-                    <ImageBox src={thumbnails[0]} alt={`${brand || ''} ${title}`} />
+        <div className="overflow-hidden relative aspect-[16/10]">
+            {thumbnails.length === 1 ? (
+                // 이미지가 1개일 때는 전체 영역 사용
+                <ImageBox src={thumbnails[0]} alt={`${brand || ''} ${title}`} />
+            ) : (
+                // 이미지가 여러 개일 때는 그리드 레이아웃 사용
+                <div className="grid grid-cols-3 gap-1 h-full">
+                    {thumbnails.slice(0, 3).map((thumbnail, index) => (
+                        <div
+                            className={index === 0 ? 'col-span-2 row-span-2' : 'col-span-1 row-span-1'}
+                            key={index}
+                        >
+                            <ImageBox src={thumbnail} alt={`${brand || ''} ${title}`} />
+                        </div>
+                    ))}
                 </div>
             )}
-            {thumbnails.length > 1 &&
-                thumbnails.slice(0, 3).map((thumbnail, index) => (
-                    <div
-                        className={index === 0 ? 'col-span-2 row-span-2' : 'col-span-1 row-span-1'}
-                        key={index}
-                    >
-                        <ImageBox src={thumbnail} alt={`${brand || ''} ${title}`} />
-                    </div>
-                ))}
             {tagImage && (
                 <span className="absolute top-0 left-0 block">
                     <img src={tagImage} alt="" className="w-20 h-20" />
