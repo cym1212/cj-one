@@ -338,7 +338,7 @@ function HomeSectionTitle({ title, description }: { title: any; description?: an
     
     return (
         <div className="poj2-home-section-title space-y-1 mb-4 lg:mb-5">
-            <h2 className="text-lg lg:text-xl font-bold">{safeTitle}</h2>
+            {/*<h2 className="text-lg lg:text-xl font-bold">{safeTitle}</h2>*/}
             {safeDescription && <p className="text-xs lg:text-sm text-description">{safeDescription}</p>}
         </div>
     );
@@ -374,89 +374,36 @@ function CategorySlider({
     const categoryChunks = chunkArray(data, 5);
     const [isBeginning, setIsBeginning] = useState(true);
     const [isEnd, setIsEnd] = useState(false);
-    const [activeCategoryId, setActiveCategoryId] = useState(data[0]?.id || '');
+    
+    // 초기값을 selectedCategoryId 기반으로 설정
+    const [activeCategoryId, setActiveCategoryId] = useState(() => {
+        if (selectedCategoryId !== null && selectedCategoryId !== undefined) {
+            return String(selectedCategoryId);
+        }
+        return data[0]?.id || '';
+    });
+    
+    // selectedCategoryId 변경 시 동기화
+    useEffect(() => {
+        if (selectedCategoryId !== null && selectedCategoryId !== undefined) {
+            setActiveCategoryId(String(selectedCategoryId));
+        }
+    }, [selectedCategoryId]);
 
     const handleCategoryClick = (categoryId: string, category: Category) => {
-        console.log('🔵 카테고리 클릭됨:', categoryId, category);
-        console.log('🔵 displayItems 존재:', !!displayItems, displayItems);
-        console.log('🔵 enableProductDisplay:', enableProductDisplay);
-        console.log('🔵 actions:', actions);
-        console.log('🔵 actions?.handleItemClick 존재:', !!actions?.handleItemClick);
-        console.log('🔵 actions?.fetchProducts 존재:', !!actions?.fetchProducts);
-        
         setActiveCategoryId(categoryId);
         
-        // fetchProducts가 있으면 직접 호출 (handleItemClick 없어도)
-        if (actions?.fetchProducts && enableProductDisplay) {
-            // displayItems에서 카테고리 ID 찾기
-            const quickMenuItem = displayItems?.find(item => {
-                const itemCategoryId = String(item.categoryId || item.id);
-                return itemCategoryId === categoryId;
-            });
-            
-            const categoryIdNum = quickMenuItem?.categoryId || parseInt(categoryId);
-            console.log('📦 fetchProducts 직접 호출, category_id:', categoryIdNum);
-            
-            if (categoryIdNum === -1) {
-                // 전체 카테고리 선택
-                actions.fetchProducts({ per_page: maxProductsToShow });
-            } else {
-                // 특정 카테고리 선택
-                actions.fetchProducts({ 
-                    category_id: categoryIdNum, 
-                    per_page: maxProductsToShow 
-                });
-            }
-            
-            // handleItemClick이 있으면 호출 (옵션)
-            if (actions.handleItemClick && quickMenuItem) {
-                console.log('✅ handleItemClick도 호출:', quickMenuItem);
-                actions.handleItemClick(quickMenuItem);
-            }
-            return;
-        }
-        
-        // 기존 로직 (handleItemClick 필수인 경우)
+        // handleItemClick만 호출! (fetchProducts 직접 호출 제거)
         if (actions?.handleItemClick && enableProductDisplay && displayItems) {
-            // displayItems에서 실제 QuickMenuItem 찾기
             const quickMenuItem = displayItems.find(item => {
                 const itemCategoryId = String(item.categoryId || item.id);
-                console.log('🔍 비교중:', itemCategoryId, '===', categoryId, itemCategoryId === categoryId);
                 return itemCategoryId === categoryId;
             });
             
             if (quickMenuItem) {
-                console.log('✅ QuickMenuItem 찾음:', quickMenuItem);
-                actions.handleItemClick(quickMenuItem);  // 전체 QuickMenuItem 객체 전달
-                
-                // fetchProducts 액션 호출
-                if (actions.fetchProducts) {
-                    const categoryIdNum = quickMenuItem.categoryId || parseInt(quickMenuItem.id);
-                    console.log('📦 fetchProducts 호출, category_id:', categoryIdNum);
-                    
-                    if (categoryIdNum === -1) {
-                        // 전체 카테고리 선택
-                        actions.fetchProducts({ per_page: maxProductsToShow });
-                    } else {
-                        // 특정 카테고리 선택
-                        actions.fetchProducts({ 
-                            category_id: categoryIdNum, 
-                            per_page: maxProductsToShow 
-                        });
-                    }
-                } else {
-                    console.log('⚠️ fetchProducts 액션이 없음');
-                }
-            } else {
-                console.log('❌ QuickMenuItem 못 찾음, categoryId:', categoryId);
-                console.log('❌ displayItems:', displayItems);
+                actions.handleItemClick(quickMenuItem);  // 이것만 호출!
+                // fetchProducts 호출 제거!
             }
-        } else {
-            console.log('⚠️ 조건 미충족:', {
-                'actions?.handleItemClick': !!actions?.handleItemClick,
-                enableProductDisplay,
-                'displayItems 존재': !!displayItems
-            });
         }
     };
     
@@ -606,7 +553,7 @@ function ProductCard({
                         <Benefits benefits={benefits} />
                     </div>
                 )}
-                {stars && reviews && (
+                {!!(stars && reviews) && (
                     <div className="poj2-product-card-reviews pt-1">
                         <Review stars={stars} reviews={reviews} />
                     </div>
@@ -915,25 +862,8 @@ function CategoryRankingComponent(props: CategoryRankingProps = {}) {
         };
     }, [hasExternalActions, actions]);
 
-    // 초기 상품 로드 - initialCategoryId가 없어도 전체 상품 로드
-    useEffect(() => {
-        if (hasExternalData && hasFetchProducts && actions?.fetchProducts) {
-            const initialId = componentProps.initialCategoryId;
-            
-            if (initialId !== undefined && initialId !== null) {
-                // 특정 카테고리
-                actions.fetchProducts({
-                    category_id: initialId,
-                    per_page: componentProps.maxProductsToShow || 20
-                });
-            } else {
-                // 전체 상품 (category_id 없이)
-                actions.fetchProducts({
-                    per_page: componentProps.maxProductsToShow || 20
-                });
-            }
-        }
-    }, []); // 빈 배열로 변경 - 초기 로드는 한 번만 실행
+    // 초기 로드 제거 - 웹빌더가 알아서 초기 로드 처리
+    // useEffect는 제거됨
 
     // Tailwind CDN 자동 로드
     useEffect(() => {
@@ -981,7 +911,7 @@ function CategoryRankingComponent(props: CategoryRankingProps = {}) {
                         <div className="text-lg">상품을 불러오는 중...</div>
                     </div>
                 ) : products && products.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 sm:gap-x-5 gap-y-8 lg:gap-y-10">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-8 lg:gap-y-10">
                         {products.filter(product => {
                             // 강화된 제품 유효성 검사
                             if (!product || typeof product !== 'object') {
@@ -1012,12 +942,12 @@ function CategoryRankingComponent(props: CategoryRankingProps = {}) {
                     <div className="text-center py-20">
                         <p className="text-gray-600">선택한 카테고리에 상품이 없습니다.</p>
                     </div>
-                ) : hasExternalData ? (
+                ) : hasExternalData && !selectedCategoryId && selectedCategoryId !== -1 ? (
                     <div className="text-center py-20">
                         <p className="text-gray-600">카테고리를 선택해주세요.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 sm:gap-x-5 gap-y-8 lg:gap-y-10">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-8 lg:gap-y-10">
                         {PRODUCT_DATA.map((product) => (
                             <ProductCard
                                 key={product.id}
