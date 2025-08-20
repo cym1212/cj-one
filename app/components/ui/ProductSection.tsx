@@ -1,36 +1,101 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 
-// Product 인터페이스 (API 문서 기준)
+// Product 인터페이스 (실제 API 응답 구조 기준)
 interface Product {
     id: number | string;
-    name: string;  // API의 title 필드에서 매핑
-    price: number; // 최종 가격 (등급/직급 할인 적용된 가격)
-    originalPrice: number; // 원래 가격 (할인 전 basePrice)
-    image: string; // API의 thumbnail 필드에서 매핑
-    stock?: number; // 재고 수량
-    hasOptions?: boolean; // 옵션 상품 여부
-    category_id?: string; // 카테고리 ID
-    description?: string; // 상품 설명
-    created_at?: string; // 생성일
-    variant_id?: number; // 변형 ID
+    companyId?: number;
+    code?: string | null;
+    
+    // config 객체 - 실제 API 응답 구조
+    config?: {
+        img_url?: string;
+        main_image?: string;
+        generate_pv?: number | string;
+        stock_count?: number | string;
+        system_price?: number | string;
+        default_price?: number | string;
+        discounted_price?: number | string;
+        is_shipping_fee_exempt?: boolean;
+    };
+    
+    // 기본 필드들
+    title?: string;  // 상품명 (API 응답)
+    name?: string;   // 상품명 (호환성)
+    tags?: string;
+    description?: string;
+    categoryId?: number | null;
+    orderIndex?: number;
+    
+    // 추가 이미지 배열 - 실제 API 응답 구조
+    additionalImages?: string[] | null;
+    
+    // 옵션 관련
+    optionJson?: any;
+    hasOptions?: boolean;
+    
+    // 날짜 정보
+    createdAt?: string;
+    updatedAt?: string;
+    deletedAt?: string | null;
+    
+    // 재고 및 배송 관련
+    sku?: string | null;
+    barcode?: string | null;
+    weight?: number | null;
+    cartonQty?: number;
+    minStock?: number;
+    leadTime?: number;
+    moq?: number;
+    cost?: number | null;
+    shippingFee?: string;
+    shippingType?: string;
+    storageType?: string;
+    canBundle?: boolean;
+    isShippingFeeExempt?: boolean;
+    
+    // 제조 정보
+    countryOfOrigin?: string | null;
+    manufacturer?: string | null;
+    manufacturerCountry?: string | null;
+    
+    // 타입 및 이벤트
+    type?: string;
+    pv_rate?: string | null;
+    enableCombinedShipping?: boolean;
+    eventParamM?: number | null;
+    eventParamN?: number | null;
+    
+    // 카테고리 정보
+    category?: {
+        id: number;
+        name: string;
+        description?: string | null;
+        parentId?: number | null;
+        path?: string | null;
+        level?: number;
+        orderNum?: number;
+    };
+    
+    // 계산된 필드들 (컴포넌트에서 처리)
+    price?: number; // 최종 가격
+    originalPrice?: number; // 원래 가격
+    image?: string; // 메인 이미지
+    thumbnails?: string[]; // 썸네일 배열
     
     // 등급/직급별 가격 정보
-    levelPrice?: number | null; // 등급/직급 할인 가격
-    levelName?: string | null;  // 할인 등급/직급명
-    hasLevelPrice: boolean;     // 등급/직급 할인 적용 여부
+    levelPrice?: number | null;
+    levelName?: string | null;
+    hasLevelPrice?: boolean;
+    pv?: number;
     
-    // PV (포인트 가치) 정보
-    pv: number; // 등급/직급별 PV 또는 기본 PV
-    
-    // 호환성을 위한 기존 필드들
-    title?: string;
-    thumbnail?: string;
+    // 호환성 필드들
     brand?: string;
     discount?: number;
     purchases?: number;
     flags?: string[];
     benefits?: Array<{ type: string; value: string }>;
     likes?: number;
+    stock?: number;
 }
 
 // ProductListData 인터페이스 (API 문서 기준)
@@ -111,31 +176,32 @@ export interface ProductSectionProps extends Partial<ComponentSkinProps> {
     style?: React.CSSProperties;
 }
 
-// 더미 데이터 (API 문서 형식으로 변환)
+// 더미 데이터 (실제 API 응답 구조에 맞춤)
 const DEFAULT_PRODUCTS: Product[] = [
     {
         id: 1,
-        name: '프리미엄 무선 이어폰',
-        price: 105000, // 등급 할인 적용된 가격 (30% 할인)
-        originalPrice: 150000,
-        image: 'https://picsum.photos/400/400?random=1',
-        stock: 50,
-        hasOptions: false,
-        category_id: '1',
+        companyId: 21,
+        config: {
+            main_image: 'https://picsum.photos/400/400?random=1',
+            img_url: 'https://picsum.photos/400/400?random=1',
+            default_price: 150000,
+            discounted_price: 105000,
+            stock_count: 50,
+            generate_pv: 210
+        },
+        title: '프리미엄 무선 이어폰',
         description: '고품질 무선 이어폰',
-        created_at: '2024-01-01',
-        
-        // 등급별 가격 정보
-        levelPrice: 105000,
-        levelName: 'VIP 할인',
-        hasLevelPrice: true,
-        pv: 210,
+        categoryId: 1,
+        additionalImages: [
+            'https://picsum.photos/400/400?random=1', // 메인 이미지 (첫 번째)
+            'https://picsum.photos/400/400?random=2', // 추가 이미지 1
+            'https://picsum.photos/400/400?random=3'  // 추가 이미지 2
+        ],
+        hasOptions: false,
+        createdAt: '2024-01-01T00:00:00.000Z',
         
         // 호환성 필드
-        title: '프리미엄 무선 이어폰',
-        thumbnail: 'https://picsum.photos/400/400?random=1',
         brand: 'TechBrand',
-        discount: 30,
         purchases: 523,
         flags: ['delivery', 'weekend'],
         benefits: [
@@ -146,27 +212,29 @@ const DEFAULT_PRODUCTS: Product[] = [
     },
     {
         id: 2,
-        name: '스마트 워치 프로',
-        price: 210000, // 등급 할인 적용된 가격 (25% 할인)
-        originalPrice: 280000,
-        image: 'https://picsum.photos/400/400?random=4',
-        stock: 30,
+        companyId: 21,
+        config: {
+            main_image: 'https://picsum.photos/400/400?random=4',
+            img_url: 'https://picsum.photos/400/400?random=4',
+            default_price: 27000,
+            discounted_price: 27000,
+            stock_count: 30,
+            generate_pv: 420
+        },
+        title: '스맥스 코리아 초보자 레저용 라켓',
+        description: '스맥스 코리아 초보자용 배드민턴 라켓',
+        categoryId: 2,
+        additionalImages: [
+            'https://picsum.photos/400/400?random=4', // 메인 이미지 (첫 번째)
+            'https://picsum.photos/400/400?random=5', // 추가 이미지 1
+            'https://picsum.photos/400/400?random=6', // 추가 이미지 2
+            'https://picsum.photos/400/400?random=7'  // 추가 이미지 3 (총 4개 이미지)
+        ],
         hasOptions: true,
-        category_id: '2',
-        description: '프리미엄 스마트 워치',
-        created_at: '2024-01-02',
-        
-        // 등급별 가격 정보
-        levelPrice: 210000,
-        levelName: '멤버 할인',
-        hasLevelPrice: true,
-        pv: 420,
+        createdAt: '2024-01-02T00:00:00.000Z',
         
         // 호환성 필드
-        title: '스마트 워치 프로',
-        thumbnail: 'https://picsum.photos/400/400?random=4',
-        brand: 'SmartTech',
-        discount: 25,
+        brand: '스맥스 코리아',
         purchases: 892,
         flags: ['broadcast', 'delivery'],
         benefits: [
@@ -176,27 +244,27 @@ const DEFAULT_PRODUCTS: Product[] = [
     },
     {
         id: 3,
-        name: '고급 커피머신',
-        price: 292500, // 등급 할인 적용된 가격 (35% 할인)
-        originalPrice: 450000,
-        image: 'https://picsum.photos/400/400?random=5',
-        stock: 10,
-        hasOptions: false,
-        category_id: '3',
+        companyId: 21,
+        config: {
+            main_image: 'https://picsum.photos/400/400?random=5',
+            img_url: 'https://picsum.photos/400/400?random=5',
+            default_price: 450000,
+            discounted_price: 292500,
+            stock_count: 10,
+            generate_pv: 585
+        },
+        title: '고급 커피머신',
         description: '프로페셔널 커피머신',
-        created_at: '2024-01-03',
-        
-        // 등급별 가격 정보
-        levelPrice: 292500,
-        levelName: 'VIP 할인',
-        hasLevelPrice: true,
-        pv: 585,
+        categoryId: 3,
+        additionalImages: [
+            'https://picsum.photos/400/400?random=5', // 메인 이미지 (첫 번째)
+            'https://picsum.photos/400/400?random=6'  // 추가 이미지 1
+        ],
+        hasOptions: false,
+        createdAt: '2024-01-03T00:00:00.000Z',
         
         // 호환성 필드
-        title: '고급 커피머신',
-        thumbnail: 'https://picsum.photos/400/400?random=5',
         brand: 'CafeExpert',
-        discount: 35,
         purchases: 234,
         flags: ['delivery'],
         benefits: [
@@ -206,27 +274,26 @@ const DEFAULT_PRODUCTS: Product[] = [
     },
     {
         id: 4,
-        name: '프리미엄 공기청정기',
-        price: 348000, // 등급 할인 적용된 가격 (40% 할인)
-        originalPrice: 580000,
-        image: 'https://picsum.photos/400/400?random=7',
-        stock: 20,
-        hasOptions: true,
-        category_id: '4',
+        companyId: 21,
+        config: {
+            main_image: 'https://picsum.photos/400/400?random=7',
+            img_url: 'https://picsum.photos/400/400?random=7',
+            default_price: 580000,
+            discounted_price: 348000,
+            stock_count: 20,
+            generate_pv: 696
+        },
+        title: '프리미엄 공기청정기',
         description: '대용량 공기청정기',
-        created_at: '2024-01-04',
-        
-        // 등급별 가격 정보  
-        levelPrice: 348000,
-        levelName: 'VIP 할인',
-        hasLevelPrice: true,
-        pv: 696,
+        categoryId: 4,
+        additionalImages: [
+            'https://picsum.photos/400/400?random=7' // 메인 이미지만 (첫 번째)
+        ],
+        hasOptions: true,
+        createdAt: '2024-01-04T00:00:00.000Z',
         
         // 호환성 필드
-        title: '프리미엄 공기청정기',
-        thumbnail: 'https://picsum.photos/400/400?random=7',
         brand: 'CleanAir',
-        discount: 40,
         purchases: 456,
         flags: ['broadcast', 'delivery', 'weekend'],
         benefits: [
@@ -238,23 +305,27 @@ const DEFAULT_PRODUCTS: Product[] = [
 ];
 
 
-// Link 대체 컴포넌트
-const Link = ({ to, children, ...props }: any) => (
-    <a href={to} onClick={(e) => { e.preventDefault(); console.log('Navigate to:', to); }} {...props}>
-        {children}
-    </a>
-);
-
 // ImageBox 컴포넌트 인라인화
-const ImageBox = ({ src, alt = '' }: { src: string; alt?: string }) => (
-    <div className="poj2-image-box relative overflow-hidden w-full h-full">
-        <img 
-            src={src} 
-            alt={alt} 
-            className="w-full h-full object-cover transition-transform duration-300 ease-out hover:scale-103" 
-        />
-    </div>
-);
+const ImageBox = ({ src, alt = '' }: { src: string; alt?: string }) => {
+    const [isLoading, setIsLoading] = React.useState(true);
+    
+    return (
+        <div className="poj2-image-box relative overflow-hidden w-full h-full bg-gray-100">
+            {isLoading && (
+                <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+            )}
+            <img 
+                src={src} 
+                alt={alt} 
+                className={`w-full h-full object-cover transition-transform duration-300 ease-out hover:scale-105 ${
+                    isLoading ? 'opacity-0' : 'opacity-100'
+                }`}
+                onLoad={() => setIsLoading(false)}
+                loading="lazy"
+            />
+        </div>
+    );
+};
 
 // 아이콘 컴포넌트들 인라인화
 const LikeIcon = ({ tailwind }: { tailwind?: string }) => (
@@ -294,63 +365,105 @@ function ProductCard({
     actions: ProductListActions;
     activeRollingText?: boolean;
 }) {
-    // 기존 디자인용 데이터 매핑
-    const thumbnails = product.thumbnail ? [product.thumbnail] : [product.image];
-    const title = product.name || product.title || '';
+    // 실제 API 응답에서 썸네일 이미지 추출 (description에서 추가 이미지 파싱)
+    const getThumbnails = () => {
+        const images = [];
+        
+        // 1. 메인 이미지 추가
+        const mainImage = product.image || product.config?.main_image || product.config?.img_url;
+        if (mainImage) images.push(mainImage);
+        
+        // 2. imageTwo 추가 (메인 이미지와 다른 경우에만)
+        if (product.imageTwo && product.imageTwo !== mainImage) {
+            images.push(product.imageTwo);
+        }
+        
+        // 3. additionalImages 배열에서 추가 (중복 제외)
+        if (product.additionalImages && product.additionalImages.length > 0) {
+            product.additionalImages.forEach(imgUrl => {
+                if (imgUrl && !images.includes(imgUrl)) {
+                    images.push(imgUrl);
+                }
+            });
+        }
+        
+        // 4. description HTML에서 img 태그 추출
+        if (product.description && images.length < 3) {
+            const imgRegex = /<img[^>]*src=['""]([^'""]*)['""][^>]*>/g;
+            let match;
+            while ((match = imgRegex.exec(product.description)) !== null && images.length < 3) {
+                const imgUrl = match[1];
+                if (imgUrl && !images.includes(imgUrl)) {
+                    images.push(imgUrl);
+                }
+            }
+        }
+        
+        // 5. 최대 3개까지만 사용
+        const finalImages = images.slice(0, 3);
+        
+
+        return finalImages.length > 0 ? finalImages : ['https://via.placeholder.com/400'];
+    };
+    
+    const thumbnails = getThumbnails();
+    const title = product.title || product.name || '';
     const brand = product.brand;
-    const price = product.price;
-    const discount = product.discount;
+    const price = product.config?.discounted_price || product.config?.default_price || product.price;
+    const originalPrice = product.config?.default_price || product.originalPrice;
+    const discount = product.discount || (originalPrice && price ? Math.round((1 - price / originalPrice) * 100) : 0);
     const purchases = product.purchases;
     const flags = product.flags;
     const benefits = product.benefits;
     const likes = product.likes;
 
     return (
-        <div className="poj2-product-card">
-            <Link to={`/product/${product.id}`} className="block">
-                <div className="poj2-product-card-thumb relative">
-                    <Thumbnail
-                        title={title}
-                        brand={brand}
-                        thumbnails={thumbnails}
-                        tagImage={undefined}
-                    />
-                    {activeRollingText && likes && (
-                        <div className="absolute left-0 bottom-0 flex items-center w-full h-8 lg:h-10 px-4 lg:px-5 bg-black/50">
-                            <RollingText>
-                                <div className="absolute flex items-center gap-1 lg:gap-2">
-                                    <LikeIcon tailwind="w-4 h-4 lg:w-6 lg:h-6 fill-white" />
-                                    <p className="text-white text-sm lg:text-base">{likes}명이 찜한 상품이에요</p>
-                                </div>
-                            </RollingText>
-                        </div>
-                    )}
-                </div>
-                <div className="poj2-product-card-info pt-3">
-                    <PriceInfo
-                        product={product}
-                        brand={brand}
-                        title={title}
-                    />
-                </div>
-                {flags && flags.length > 0 && (
-                    <div className="poj2-product-card-flags lg:pt-1">
-                        <Flags flags={flags} />
+        <div 
+            className="poj2-product-card cursor-pointer"
+            onClick={() => actions.handleProductClick(product)}
+        >
+            <div className="poj2-product-card-thumb relative">
+                <Thumbnail
+                    title={title}
+                    brand={brand}
+                    thumbnails={thumbnails}
+                    tagImage={undefined}
+                />
+                {activeRollingText && likes && (
+                    <div className="absolute left-0 bottom-0 flex items-center w-full h-8 lg:h-10 px-4 lg:px-5 bg-black/50">
+                        <RollingText>
+                            <div className="absolute flex items-center gap-1 lg:gap-2">
+                                <LikeIcon tailwind="w-4 h-4 lg:w-6 lg:h-6 fill-white" />
+                                <p className="text-white text-sm lg:text-base">{likes}명이 찜한 상품이에요</p>
+                            </div>
+                        </RollingText>
                     </div>
                 )}
-                {benefits && benefits.length > 0 && (
-                    <div className="poj2-product-card-benefits pt-2">
-                        <Benefits benefits={benefits} />
-                    </div>
-                )}
-            </Link>
+            </div>
+            <div className="poj2-product-card-info pt-3">
+                <PriceInfo
+                    product={product}
+                    brand={brand}
+                    title={title}
+                />
+            </div>
+            {flags && flags.length > 0 && (
+                <div className="poj2-product-card-flags lg:pt-1">
+                    <Flags flags={flags} />
+                </div>
+            )}
+            {benefits && benefits.length > 0 && (
+                <div className="poj2-product-card-benefits pt-2">
+                    <Benefits benefits={benefits} />
+                </div>
+            )}
         </div>
     );
 }
 
 function Thumbnail({ title, brand, thumbnails, tagImage }: { title: string; thumbnails: string[]; brand?: string; tagImage?: string }) {
     return (
-        <div className="overflow-hidden relative grid grid-cols-3 gap-1 min-h-[175px] lg:min-h-[240px]">
+        <div className="overflow-hidden relative grid grid-cols-3 gap-1 aspect-[16/10]">
             {thumbnails.length === 1 && (
                 <div className="col-span-2 row-span-2">
                     <ImageBox src={thumbnails[0]} alt={`${brand || ''} ${title}`} />
@@ -523,13 +636,10 @@ function ProductSectionComponent(props: ProductSectionProps = {}) {
     // ProductListActions 구성
     const actions: ProductListActions = hasExternalActions ? props.actions! : {
         handleAddToCart: async (product: Product) => {
-            console.log('장바구니에 추가:', product.name);
             // 옵션이 있는 상품은 상세페이지로 이동
             if (product.hasOptions) {
                 if (props.utils?.navigate) {
                     props.utils.navigate(`/product/${product.id}`);
-                } else {
-                    console.log('상품 상세페이지로 이동:', product.id);
                 }
             } else {
                 // 바로 장바구니 추가 로직
@@ -588,19 +698,28 @@ function ProductSectionComponent(props: ProductSectionProps = {}) {
             
             if (props.utils?.navigate) {
                 props.utils.navigate(`/product/${product.id}`);
-            } else {
-                console.log('상품 상세페이지로 이동:', product.id);
             }
         }
     };
 
-    // Tailwind CDN 자동 로드
+    // Tailwind CDN 자동 로드 (최적화)
     useEffect(() => {
         if (typeof window !== 'undefined' && !document.querySelector('script[src*="cdn.tailwindcss.com"]')) {
             const script = document.createElement('script');
             script.src = 'https://cdn.tailwindcss.com';
-            script.async = true;
+            script.async = false; // 동기적으로 로드하여 스타일 적용 보장
             document.head.appendChild(script);
+            
+            // Tailwind 설정 추가
+            script.onload = () => {
+                if (window.tailwind) {
+                    window.tailwind.config = {
+                        corePlugins: {
+                            preflight: false // 기본 스타일 리셋 비활성화
+                        }
+                    };
+                }
+            };
         }
     }, []);
 
@@ -613,13 +732,27 @@ function ProductSectionComponent(props: ProductSectionProps = {}) {
         );
     }
 
-    // 표시할 상품 결정 (모바일/PC)
-    const displayProducts = data.isMobile ? data.mobileProducts : data.products;
+    // 선택한 상품만 표시 (페이지네이션 없음)
+    const displayProducts = initialProducts;
 
     return (
         <div className={`pb-15 lg:pb-30 ${props.className || ''}`} style={props.style}>
-            {/* 상품 그리드 */}
-            <div className={`grid grid-cols-1 sm:grid-cols-${data.itemsPerRow} gap-x-4 sm:gap-x-5 gap-y-8 lg:gap-y-10`}>
+            {/* 초기 레이아웃 안정성을 위한 스타일 */}
+            <style>{`
+                .poj2-product-card {
+                    contain: layout;
+                }
+                .poj2-product-card-thumb {
+                    position: relative;
+                    background: #f3f4f6;
+                }
+                .poj2-image-box img {
+                    will-change: transform;
+                }
+            `}</style>
+            
+            {/* 상품 그리드 - 기존 디자인 그대로 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-5 gap-y-8 lg:gap-y-10">
                 {displayProducts.map((product) => (
                     <ProductCard
                         key={product.id}
@@ -630,41 +763,6 @@ function ProductSectionComponent(props: ProductSectionProps = {}) {
                     />
                 ))}
             </div>
-
-            {/* PC 페이지네이션 */}
-            {!data.isMobile && data.totalPages > 1 && props.options?.showPagination !== false && (
-                <div className="flex justify-center mt-10">
-                    <div className="flex gap-2">
-                        {Array.from({ length: data.totalPages }, (_, i) => i + 1).map(page => (
-                            <button
-                                key={page}
-                                onClick={() => actions.handlePageChange(page)}
-                                className={`px-3 py-2 rounded ${
-                                    page === data.currentPage
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-200 hover:bg-gray-300'
-                                }`}
-                            >
-                                {page}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* 모바일 더보기 버튼 */}
-            {data.isMobile && data.mobilePage < data.totalPages && (
-                <div className="flex justify-center mt-8">
-                    <button
-                        ref={loadMoreButtonRef}
-                        onClick={actions.handleLoadMore}
-                        disabled={data.isLoadingMore}
-                        className="px-6 py-3 bg-blue-500 text-white rounded-lg disabled:bg-gray-400"
-                    >
-                        {data.isLoadingMore ? '로딩 중...' : '더보기'}
-                    </button>
-                </div>
-            )}
         </div>
     );
 }

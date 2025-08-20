@@ -5,15 +5,113 @@
 ## 📋 목차
 
 1. [개요](#개요)
-2. [ComponentSkinProps 구조](#componentskinprops-구조)
-3. [data Props 목록](#data-props-목록)
-4. [actions 목록](#actions-목록)
-5. [타입 정의](#타입-정의)
-6. [필수/선택 구분](#필수선택-구분)
-7. [기본값](#기본값)
-8. [예제 코드](#예제-코드)
-9. [에지 케이스](#에지-케이스)
-10. [마이그레이션 가이드](#마이그레이션-가이드)
+2. [⚠️ 호환성 가이드](#️-호환성-가이드)
+3. [ComponentSkinProps 구조](#componentskinprops-구조)
+4. [data Props 목록](#data-props-목록)
+5. [actions 목록](#actions-목록)
+6. [타입 정의](#타입-정의)
+7. [필수/선택 구분](#필수선택-구분)
+8. [기본값](#기본값)
+9. [예제 코드](#예제-코드)
+10. [에지 케이스](#에지-케이스)
+11. [마이그레이션 가이드](#마이그레이션-가이드)
+
+---
+
+## ⚠️ 호환성 가이드
+
+### 🔧 RecommendService와의 호환성 문제
+
+**현재 상황**: TrendingItems 컴포넌트를 RecommendService 등 다른 스킨과 함께 사용할 때 데이터 구조 불일치로 인한 문제가 발생할 수 있습니다.
+
+#### 문제점
+1. **필드명 불일치**: TrendingItems는 `image`, `url` 필드를 사용하지만, RecommendService는 `iconUrl`, `linkUrl` 필드를 기대
+2. **데이터 전달 경로**: 웹빌더가 `props.data.items`에 데이터를 전달하지만, 컴포넌트는 `props.data.services`를 기대
+3. **중첩된 데이터 구조**: 실제 웹빌더 환경에서는 복잡한 중첩 구조로 데이터가 전달됨
+
+#### 실제 웹빌더 데이터 구조
+```javascript
+// 웹빌더에서 실제로 전달되는 구조
+props.data = {
+    id: 'TRENDING_ITEMS-1755628694013',
+    type: 'TRENDING_ITEMS',
+    mode: 'preview',
+    
+    // 실제 데이터 위치 (TrendingItems 형식)
+    items: [
+        {
+            id: 1754552950855,
+            title: '서비스명',
+            image: 'https://withcookie.b-cdn.net/image.png',  // ← iconUrl이 아닌 image
+            url: 'https://google.com'                        // ← linkUrl이 아닌 url
+        }
+    ],
+    
+    // 추가 설정들
+    title: 'Trending now',
+    subtitle: '에디터가 선정한',
+    className: 'trending-items-component',
+    
+    // 중첩된 백업 데이터
+    props: { /* ... */ },
+    componentProps: { /* ... */ }
+}
+```
+
+#### 호환성 해결 방법
+
+**RecommendService 스킨을 개발할 때**는 다음과 같은 데이터 변환 로직이 필요합니다:
+
+```typescript
+// TrendingItems → RecommendService 데이터 변환
+const convertTrendingItemToService = (item: TrendingItem): RecommendServiceItem => {
+    return {
+        id: item.id || Math.random().toString(36),
+        title: item.title || item.name || '제목 없음',
+        iconUrl: item.image || item.iconUrl || item.thumbnail,
+        linkUrl: item.url || item.linkUrl || item.link || '#',
+        alt: item.alt || item.title || item.name || '이미지'
+    };
+};
+
+// 다중 경로에서 데이터 추출
+const extractServices = (data: any): RecommendServiceItem[] => {
+    let rawItems: any[] = [];
+    
+    // 6가지 경로에서 데이터 찾기
+    if (data.services && data.services.length > 0) {
+        return data.services; // 이미 올바른 형식
+    } else if (data.items && data.items.length > 0) {
+        rawItems = data.items; // TrendingItems 형식 - 변환 필요
+    } else if (data.props?.services || data.props?.items) {
+        rawItems = data.props.services || data.props.items;
+    } else if (data.componentProps?.services || data.componentProps?.items) {
+        rawItems = data.componentProps.services || data.componentProps.items;
+    } else {
+        return DEFAULT_SERVICES; // 기본값 사용
+    }
+
+    // TrendingItems 형식을 RecommendService 형식으로 변환
+    return rawItems.map(convertTrendingItemToService);
+};
+```
+
+### 📋 필드 매핑 테이블
+
+| TrendingItems | RecommendService | 호환성 |
+|---------------|------------------|--------|
+| `items` | `services` | ✅ 자동 변환 지원 |
+| `item.image` | `item.iconUrl` | ✅ 자동 변환 지원 |
+| `item.url` | `item.linkUrl` | ✅ 자동 변환 지원 |
+| `item.title` | `item.title` | ✅ 동일 |
+| `item.id` | `item.id` | ✅ 동일 |
+
+### 🛠️ 개발자 권장사항
+
+1. **문서와 실제 구현 확인**: API 문서와 실제 웹빌더 전달 데이터 구조가 다를 수 있으니 항상 실제 데이터 로깅 확인
+2. **유연한 데이터 추출**: 여러 경로에서 데이터를 찾을 수 있는 로직 구현
+3. **필드 매핑 함수**: 다른 컴포넌트와 호환성을 위한 데이터 변환 함수 구현
+4. **디버깅 로그 활용**: `console.log`를 통해 실제 전달되는 데이터 구조 확인
 
 ---
 
@@ -761,8 +859,96 @@ const OptimizedSkin = memo(({ data, actions }) => {
 
 ---
 
+## 🔍 실제 문제 해결 사례
+
+### RecommendService 스킨 개발 시 발생한 데이터 연동 문제
+
+#### 문제 상황
+RecommendService 스킨을 개발했는데 웹빌더에서 기본 하드코딩된 데이터만 표시되고, 웹빌더에서 설정한 실제 데이터가 표시되지 않는 문제가 발생했습니다.
+
+#### 원인 분석
+1. **문서와 실제 구현 불일치**: API 문서는 `ComponentSkinProps.data.services` 구조를 설명했지만, 실제 웹빌더는 `data.items` + TrendingItems 형식으로 데이터를 전달
+2. **필드명 불일치**: TrendingItems는 `image`, `url` 필드를 사용하지만 RecommendService는 `iconUrl`, `linkUrl` 필드를 기대
+3. **너무 단순한 fallback 로직**: `props.data.services || DEFAULT_SERVICES`로 인해 항상 기본값 사용
+
+#### 해결 과정
+
+**1단계: 실제 데이터 구조 파악**
+```javascript
+// 디버깅 로그 추가
+console.log('props.data:', props.data);
+console.log('props.data?.services:', props.data?.services);
+console.log('props.data?.items:', props.data?.items);
+
+// 결과:
+// props.data.services: undefined
+// props.data.items: [4개 TrendingItem 객체들]
+```
+
+**2단계: 데이터 추출 로직 개선**
+```javascript
+// Before: 너무 단순한 로직
+services: props.data.services || DEFAULT_SERVICES
+
+// After: 6가지 경로에서 데이터 찾기
+const extractServices = (data) => {
+    if (data.services && data.services.length > 0) return data.services;
+    if (data.items && data.items.length > 0) return data.items;
+    if (data.props?.services && data.props.services.length > 0) return data.props.services;
+    if (data.props?.items && data.props.items.length > 0) return data.props.items;
+    if (data.componentProps?.services && data.componentProps.services.length > 0) return data.componentProps.services;
+    if (data.componentProps?.items && data.componentProps.items.length > 0) return data.componentProps.items;
+    return DEFAULT_SERVICES;
+};
+```
+
+**3단계: 필드 매핑 함수 구현**
+```javascript
+const convertTrendingItemToService = (item) => ({
+    id: item.id || Math.random().toString(36),
+    title: item.title || item.name || '제목 없음',
+    iconUrl: item.image || item.iconUrl || item.thumbnail, // ← 핵심: image를 iconUrl로 변환
+    linkUrl: item.url || item.linkUrl || item.link || '#',  // ← 핵심: url을 linkUrl로 변환
+    alt: item.alt || item.title || item.name || '이미지'
+});
+```
+
+**4단계: 통합 및 검증**
+```javascript
+const extractServices = (data) => {
+    let rawItems = [];
+    
+    // 데이터 찾기
+    if (data.items && data.items.length > 0) {
+        rawItems = data.items; // TrendingItems 형식
+    } else if (data.services && data.services.length > 0) {
+        return data.services; // 이미 올바른 형식
+    } else {
+        return DEFAULT_SERVICES;
+    }
+    
+    // 형식 변환
+    return rawItems.map(convertTrendingItemToService);
+};
+```
+
+#### 최종 결과
+- ✅ 웹빌더에서 설정한 실제 데이터 표시
+- ✅ 이미지 정상 로드 (`image` → `iconUrl` 변환)
+- ✅ 링크 클릭 정상 작동 (`url` → `linkUrl` 변환)
+- ✅ 기본값 fallback 유지
+
+#### 교훈
+1. **API 문서를 맹신하지 말 것**: 실제 데이터 구조를 반드시 로깅으로 확인
+2. **유연한 데이터 추출**: 여러 경로에서 데이터를 찾을 수 있는 로직 필요
+3. **필드 매핑의 중요성**: 컴포넌트 간 호환성을 위한 데이터 변환 로직 필수
+4. **체계적 디버깅**: 단계별로 데이터 흐름을 추적해야 근본 원인 파악 가능
+
+---
+
 ## 📚 참고 자료
 
+- **[RecommendService 컴포넌트 스킨 API](/docs/skin_guide/RECOMMEND_SERVICE_SKIN_API.md)** - TrendingItems 호환 컴포넌트 개발 가이드
 - [외부 스킨 시스템 가이드](/docs/EXTERNAL_SKIN_SYSTEM_GUIDE.md)
 - [ComponentSkinProps 인터페이스 정의](/src/types/component-skin.d.ts)
 - [TrendingItems 컴포넌트 소스 코드](/src/components/module/TrendingItems/)

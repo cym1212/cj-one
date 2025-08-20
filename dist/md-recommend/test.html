@@ -3,81 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MDRecommend Skin Test</title>
-    
-    <!-- Tailwind CSS CDN -->
+    <title>MDRecommend Component Test</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 빌드된 CSS (빈 파일) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <link rel="stylesheet" href="./poj2-md-recommend.css">
-    
-    <!-- React CDN -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid #007bff;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-2xl font-bold mb-8 text-center">MDRecommend 스킨 테스트</h1>
-        <div id="root"></div>
-    </div>
-    
-    <!-- 빌드된 UMD 모듈 -->
-    <script src="./poj2-md-recommend.umd.js"></script>
+    <div class="container mx-auto max-w-6xl">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">MDRecommend Component Test</h1>
+        
+        <!-- 기본 테스트 -->
+        <div class="test-section">
+            <h2 class="test-title text-xl font-semibold">1. 기본 테스트 (Default Products)</h2>
+            <div id="test-default"></div>
+        </div>
 
+        <!-- 웹빌더 환경 시뮬레이션 -->
+        <div class="test-section">
+            <h2 class="test-title text-xl font-semibold">2. 웹빌더 환경 시뮬레이션 (ProductSlider API)</h2>
+            <div id="test-webbuilder"></div>
+        </div>
+
+        <!-- 커스텀 상품 데이터 -->
+        <div class="test-section">
+            <h2 class="test-title text-xl font-semibold">3. 커스텀 상품 데이터 테스트</h2>
+            <div id="test-custom"></div>
+        </div>
+
+        <!-- 스타일 커스터마이징 -->
+        <div class="test-section">
+            <h2 class="test-title text-xl font-semibold">4. 스타일 커스터마이징 테스트</h2>
+            <div id="test-custom-style"></div>
+        </div>
+
+        <!-- 에디터 모드 -->
+        <div class="test-section">
+            <h2 class="test-title text-xl font-semibold">5. 에디터 모드 테스트</h2>
+            <div id="test-editor"></div>
+        </div>
+
+        <!-- API 문서 -->
+        <div class="test-section">
+            <h2 class="test-title text-xl font-semibold">API 사용법</h2>
+            <h3 class="text-lg font-semibold mb-3">웹빌더 환경 (ComponentSkinProps)</h3>
+            <pre><code>const props = {
+  data: {
+    allProducts: [...], // ProductSlider API 호환 상품 데이터
+    title: "MD 추천 상품",
+    subtitle: "MD가 직접 선정한",
+    showTitle: true,
+    showPrice: true,
+    showStock: false,
+    showAddToCart: true,
+    cartButtonColor: "#007bff"
+  },
+  actions: {
+    handleAddToCart: (product, e) => { ... },
+    handleProductClick: (product) => { ... },
+    formatPrice: (price) => { ... },
+    translate: (text) => { ... }
+  },
+  utils: {
+    navigate: (path) => { ... },
+    formatCurrency: (amount) => { ... },
+    t: (key) => { ... }
+  }
+};
+
+// 렌더링
+ReactDOM.render(React.createElement(Poj2MDRecommend, props), container);</code></pre>
+
+            <h3 class="text-lg font-semibold mb-3 mt-6">독립 실행 환경</h3>
+            <pre><code>const props = {
+  products: [...], // 상품 데이터 배열 (처음 2개만 사용됨)
+  title: "MD 추천 상품",
+  subtitle: "MD가 직접 선정한"
+};
+
+// 렌더링
+ReactDOM.render(React.createElement(Poj2MDRecommend, props), container);</code></pre>
+        </div>
+    </div>
+
+    <script src="./poj2-md-recommend.umd.js"></script>
     <script>
-        // UMD 모듈이 로드된 후 컴포넌트 렌더링
-        if (window.Poj2MDRecommend) {
-            const MDRecommend = window.Poj2MDRecommend;
-            
-            // 커스텀 데이터 (선택사항)
-            const customData = {
-                title: "#MD가 추천하는 트렌드상품이에요",
-                products: [
-                    {
-                        id: 1,
-                        status: 'selling',
-                        type: 'consultation',
-                        thumbnails: ['../../public/images/product/product-3.jpg'],
-                        title: '한샘 이지홈 인테리어',
-                        brand: '한샘',
-                        price: 0,
-                        discount: 0,
-                        purchases: 156,
-                        flags: ['broadcast'],
-                        benefits: [
-                            { type: 'coupon', value: '무료 상담' }
-                        ],
-                        likes: 89
-                    },
-                    {
-                        id: 2,
-                        status: 'selling',
-                        type: 'consultation',
-                        thumbnails: ['../../public/images/product/product-3.jpg'],
-                        title: '노랑풍선 큐슈 3일 #온천여행 #가을단풍',
-                        brand: '노랑풍선',
-                        price: 0,
-                        discount: 0,
-                        purchases: 234,
-                        flags: ['broadcast'],
-                        benefits: [
-                            { type: 'card', value: '전문가 상담' }
-                        ],
-                        likes: 145
-                    }
-                ]
-            };
-            
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            // 실제 이미지로 렌더링
-            root.render(React.createElement(MDRecommend, customData));
-            
-            // 또는 커스텀 데이터로 렌더링
-            // root.render(React.createElement(MDRecommend, customData));
-        } else {
-            console.error('MDRecommend component not loaded');
-            document.getElementById('root').innerHTML = '<p>컴포넌트를 로드할 수 없습니다.</p>';
-        }
+        // ProductSlider API 호환 상품 데이터
+        const customProducts = [
+            {
+                id: 101,
+                title: "테스트 상품 1",
+                name: "테스트 상품 1",
+                price: 50000,
+                salePrice: 35000,
+                sale_price: 35000,
+                image: "https://via.placeholder.com/300x300/FF6B6B/FFFFFF?text=상품1",
+                thumbnail: "https://via.placeholder.com/300x300/FF6B6B/FFFFFF?text=상품1",
+                stock_count: 10,
+                stock: 10,
+                config: {
+                    default_price: 50000,
+                    discounted_price: 35000,
+                    img_url: "https://via.placeholder.com/300x300/FF6B6B/FFFFFF?text=상품1",
+                    stock_count: 10
+                }
+            },
+            {
+                id: 102,
+                title: "테스트 상품 2",
+                name: "테스트 상품 2", 
+                price: 80000,
+                salePrice: 64000,
+                sale_price: 64000,
+                image: "https://via.placeholder.com/300x300/4ECDC4/FFFFFF?text=상품2",
+                thumbnail: "https://via.placeholder.com/300x300/4ECDC4/FFFFFF?text=상품2",
+                stock_count: 5,
+                stock: 5,
+                config: {
+                    default_price: 80000,
+                    discounted_price: 64000,
+                    img_url: "https://via.placeholder.com/300x300/4ECDC4/FFFFFF?text=상품2",
+                    stock_count: 5
+                }
+            },
+            {
+                id: 103,
+                title: "테스트 상품 3 (표시안됨)",
+                name: "테스트 상품 3 (표시안됨)",
+                price: 120000,
+                image: "https://via.placeholder.com/300x300/45B7D1/FFFFFF?text=상품3",
+                stock_count: 0
+            }
+        ];
+
+        // 1. 기본 테스트
+        ReactDOM.render(
+            React.createElement(Poj2MDRecommend),
+            document.getElementById('test-default')
+        );
+
+        // 2. 웹빌더 환경 시뮬레이션
+        const webbuilderProps = {
+            data: {
+                allProducts: customProducts,
+                title: "웹빌더 MD 추천",
+                subtitle: "ProductSlider API 호환",
+                showTitle: true,
+                showPrice: true,
+                showStock: true,
+                showAddToCart: true,
+                cartButtonColor: "#28a745"
+            },
+            actions: {
+                handleAddToCart: (product, e) => {
+                    alert(`장바구니에 ${product.title} 추가됨!`);
+                },
+                handleProductClick: (product) => {
+                    alert(`${product.title} 상품 페이지로 이동`);
+                },
+                formatPrice: (price) => {
+                    return `₩${price.toLocaleString()}`;
+                },
+                translate: (text) => text
+            },
+            utils: {
+                navigate: (path) => console.log('Navigate to:', path),
+                formatCurrency: (amount) => `₩${amount.toLocaleString()}`,
+                t: (key) => key
+            },
+            app: {
+                user: { id: 1, name: 'Test User' }
+            }
+        };
+
+        ReactDOM.render(
+            React.createElement(Poj2MDRecommend, webbuilderProps),
+            document.getElementById('test-webbuilder')
+        );
+
+        // 3. 커스텀 상품 데이터
+        const customProps = {
+            products: customProducts,
+            title: "커스텀 상품 추천",
+            subtitle: "테스트용 상품들"
+        };
+
+        ReactDOM.render(
+            React.createElement(Poj2MDRecommend, customProps),
+            document.getElementById('test-custom')
+        );
+
+        // 4. 스타일 커스터마이징
+        const styledProps = {
+            data: {
+                allProducts: customProducts,
+                title: "스타일 커스터마이징",
+                subtitle: "색상과 스타일 변경",
+                showTitle: true,
+                showPrice: true,
+                showStock: false,
+                showAddToCart: true,
+                cartButtonColor: "#DC3545",
+                titleStyle: {
+                    fontSize: "24px",
+                    fontWeight: "700",
+                    color: "#DC3545",
+                    marginBottom: "20px"
+                },
+                className: "custom-md-recommend"
+            },
+            actions: {
+                handleAddToCart: (product, e) => {
+                    console.log('Custom 장바구니 추가:', product);
+                },
+                handleProductClick: (product) => {
+                    console.log('Custom 상품 클릭:', product);
+                }
+            },
+            utils: {
+                navigate: (path) => console.log('Custom navigate:', path)
+            }
+        };
+
+        ReactDOM.render(
+            React.createElement(Poj2MDRecommend, styledProps),
+            document.getElementById('test-custom-style')
+        );
+
+        // 5. 에디터 모드
+        const editorProps = {
+            data: {
+                allProducts: customProducts,
+                title: "에디터 모드",
+                subtitle: "클릭 비활성화됨",
+                showTitle: true,
+                showPrice: true,
+                showStock: true,
+                showAddToCart: true,
+                mode: 'editor'
+            },
+            actions: {
+                handleAddToCart: (product, e) => {
+                    console.log('에디터 모드 - 장바구니 비활성화');
+                },
+                handleProductClick: (product) => {
+                    console.log('에디터 모드 - 상품 클릭 비활성화');
+                }
+            },
+            mode: 'editor',
+            editor: {
+                isSelected: true,
+                onSelect: () => console.log('Component selected'),
+                onEdit: () => console.log('Component edit'),
+                onDelete: () => console.log('Component delete')
+            }
+        };
+
+        ReactDOM.render(
+            React.createElement(Poj2MDRecommend, editorProps),
+            document.getElementById('test-editor')
+        );
+
+        // 콘솔에 사용법 안내
+        console.log('=== MDRecommend Component Test ===');
+        console.log('1. 기본 테스트: DEFAULT_PRODUCTS 사용');
+        console.log('2. 웹빌더 환경: ProductSlider API 호환 테스트');
+        console.log('3. 커스텀 데이터: 사용자 정의 상품 데이터');
+        console.log('4. 스타일 커스터마이징: 색상 및 스타일 변경');
+        console.log('5. 에디터 모드: 웹빌더 에디터 환경 시뮬레이션');
+        console.log('');
+        console.log('전역 변수:');
+        console.log('- Poj2MDRecommend: 컴포넌트 함수');
+        console.log('- customProducts: 테스트용 상품 데이터');
+        console.log('');
+        console.log('주요 기능:');
+        console.log('✅ ProductSlider API 완전 호환');
+        console.log('✅ 처음 2개 상품만 표시');
+        console.log('✅ 웹빌더 환경 자동 감지');
+        console.log('✅ 에디터/프로덕션 모드 지원');
+        console.log('✅ Tailwind CSS 자동 로드');
+        console.log('✅ 반응형 디자인');
+        console.log('✅ 할인율 자동 계산');
+        console.log('✅ 재고 관리');
+        console.log('✅ 커스터마이징 지원');
     </script>
 </body>
 </html>

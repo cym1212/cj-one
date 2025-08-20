@@ -39,30 +39,30 @@ ProductSlider는 상품 목록을 슬라이드 형태로 표시하는 컴포넌�
 
 ```typescript
 interface ComponentSkinProps {
-  data: ProductSliderData;      // 컴포넌트 상태 및 설정
-  actions: ProductSliderActions; // 이벤트 핸들러
-  options: Record<string, any>;  // 사용자 설정 옵션
-  mode: 'editor' | 'preview' | 'production';
-  utils: {
-    t: (key: string) => string;
-    navigate: (path: string) => void;
-    formatCurrency: (amount: number) => string;
-    formatDate: (date: Date) => string;
-    getAssetUrl: (path: string) => string;
-    cx: (...classes: string[]) => string;
-  };
-  app?: {
-    user?: any;
-    company?: any;
-    currentLanguage?: string;
-    theme?: any;
-  };
-  editor?: {
-    isSelected: boolean;
-    onSelect: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
-  };
+    data: ProductSliderData;      // 컴포넌트 상태 및 설정
+    actions: ProductSliderActions; // 이벤트 핸들러
+    options: Record<string, any>;  // 사용자 설정 옵션
+    mode: 'editor' | 'preview' | 'production';
+    utils: {
+        t: (key: string) => string;
+        navigate: (path: string) => void;
+        formatCurrency: (amount: number) => string;
+        formatDate: (date: Date) => string;
+        getAssetUrl: (path: string) => string;
+        cx: (...classes: string[]) => string;
+    };
+    app?: {
+        user?: any;
+        company?: any;
+        currentLanguage?: string;
+        theme?: any;
+    };
+    editor?: {
+        isSelected: boolean;
+        onSelect: () => void;
+        onEdit: () => void;
+        onDelete: () => void;
+    };
 }
 ```
 
@@ -157,7 +157,7 @@ interface ComponentSkinProps {
 | 액션명 | 타입 | 설명 |
 |--------|------|------|
 | `handleAddToCart` | `(product: any, e: React.MouseEvent) => void` | 장바구니에 상품 추가 |
-| `handleProductClick` | `(product: any) => void` | 상품 클릭 시 `/product/{id}` 페이지로 이동 |
+| `handleProductClick` | `(product: any) => void` | 상품 클릭 시 `/products/{id}` 페이지로 이동 |
 
 ### 터치/스와이프 이벤트
 
@@ -258,7 +258,7 @@ const stock = product.config?.stock_count || product.stock_count || product.stoc
 | 타이틀 글자 크기 | `titleFontSize` | `string` | `'18px'` |
 | 타이틀 색상 | `titleColor` | `string` | `'#333333'` |
 | 자동 슬라이드 | `autoSlide` | `boolean` | `true` |
-| 자동 슬라이드 간격 | `autoSlideInterval` | `number` | `5000` |
+| 자동 슬라이드 간격 | `autoSlideInterval` | `number` | `3000` |
 | 포함할 상품 ID | `include_product_ids` | `string` | `''` |
 | 제외할 상품 ID | `exclude_product_ids` | `string` | `''` |
 | 포함할 카테고리 ID | `include_category_ids` | `string` | `''` |
@@ -268,27 +268,28 @@ const stock = product.config?.stock_count || product.stock_count || product.stoc
 | 재고 정보 표시 | `showStock` | `boolean` | `false` |
 | 장바구니 버튼 | `showAddToCart` | `boolean` | `true` |
 
-### ⚠️ options 객체에서 접근하는 방법:
+### ⚠️ 중요: data 객체에서 모든 설정값 접근:
 
 ```javascript
-const BasicProductSliderSkin = ({ data, actions, options, utils }) => {
-  // options에서 속성 패널 값 추출
+const BasicProductSliderSkin = ({ data, actions, utils }) => {
+  // ❌ 잘못된 방법: options에서 추출하지 않음
+  // const { sliderTitle } = options;
+  
+  // ✅ 올바른 방법: data 객체에서 모든 설정값 추출
   const {
-    sliderTitle = '인기 상품',
-    showTitle = true,
-    titleFontSize = '24px',
-    titleColor = '#333333',
-    showPrice = true,
-    showAddToCart = true,
+    sliderTitle,
+    showTitle,
+    titleFontSize,
+    titleColor,
+    showPrice,
+    showAddToCart,
+    titleStyle, // 이미 계산된 스타일 객체 사용
     // ... 기타 속성들
-  } = options;
+  } = data;
   
   // 사용 예시
   {showTitle && (
-    <h2 style={{ 
-      fontSize: titleFontSize, 
-      color: titleColor 
-    }}>
+    <h2 style={titleStyle}>
       {sliderTitle}
     </h2>
   )}
@@ -378,7 +379,7 @@ if (data.loading) {
 
 ### 7. 상품 클릭 시 상세 페이지 이동
 
-상품 이미지나 상품명을 클릭하면 자동으로 `/product/{id}` 페이지로 이동합니다:
+상품 이미지나 상품명을 클릭하면 자동으로 `/products/{id}` 페이지로 이동합니다:
 
 ```javascript
 // 상품 이미지 클릭
@@ -401,8 +402,8 @@ if (data.loading) {
 ```
 
 **`handleProductClick` 동작 방식:**
-- React Router가 있는 경우: `navigate('/product/' + product.id)`
-- 없는 경우: `window.location.href = '/product/' + product.id`
+- React Router가 있는 경우: `navigate('/products/' + product.id)`
+- 없는 경우: `window.location.href = '/products/' + product.id`
 
 ---
 
@@ -459,7 +460,7 @@ if (data.loading) {
   titleColor: '#333333',
   itemsPerSlide: 4,
   autoSlide: true,
-  autoSlideInterval: 5000,
+  autoSlideInterval: 3000, // 실제 기본값
   showPrice: true,
   showStock: false,
   showAddToCart: true
@@ -758,15 +759,16 @@ data.allProducts.map(product => (
 ### 주요 변경사항 체크리스트
 
 - [ ] `data.allProducts` 사용하되 `data.defaultProducts`로 fallback 처리
-- [ ] 모든 설정값을 `data` 객체에서 가져오기 (options 사용 안함)
+- [ ] 모든 설정값을 `data` 객체에서 가져오기 (❌ options 사용 안함!)
 - [ ] 상품 데이터 호환성 처리 (title/name, price 등)
 - [ ] 조건부 렌더링 적용 (data.showTitle, data.showPrice 등)
 - [ ] 무한 슬라이드 구현 (`translateX`, `slideWidth` 사용)
 - [ ] 터치/스와이프 이벤트 처리
 - [ ] CSS 클래스명 충돌 방지
-- [ ] `actions.formatPrice` 함수 사용
+- [ ] `actions.formatPrice` 함수 사용 (한국어 통화 형식 지원)
 - [ ] 장바구니 추가 시 이벤트 객체 전달 (`handleAddToCart(product, e)`)
 - [ ] 에디터 모드 대응
+- [ ] 상품 클릭 시 `/products/{id}` URL 사용 (복수형 주의)
 
 ---
 
@@ -790,16 +792,16 @@ const ProductCard = React.memo(({ product, onAddToCart }) => {
 ### 접근성 개선
 ```javascript
 <div
-  role="region"
-  aria-label="상품 슬라이더"
-  aria-roledescription="carousel"
+    role="region"
+    aria-label="상품 슬라이더"
+    aria-roledescription="carousel"
 >
-  <div
-    role="group"
-    aria-label={`${totalSlides}개 중 ${currentSlide + 1}번째 슬라이드`}
-  >
-    {/* 상품 목록 */}
-  </div>
+    <div
+        role="group"
+        aria-label={`${totalSlides}개 중 ${currentSlide + 1}번째 슬라이드`}
+    >
+        {/* 상품 목록 */}
+    </div>
 </div>
 ```
 

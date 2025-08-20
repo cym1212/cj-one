@@ -282,14 +282,14 @@ function RecommendServiceComponent(props: RecommendServiceProps = {}) {
             )}
             
             {/* 서비스 아이템 그리드 */}
-            <ul className="poj2-recommend-service overflow-x-auto flex items-center min-[907px]:justify-center gap-4 lg:gap-8">
+            <ul className="poj2-recommend-service overflow-x-auto flex items-center min-[907px]:justify-center gap-6 lg:gap-12">
                 {(data.services || DEFAULT_SERVICES).map((service) => {
                     const hasValidUrl = actions.isValidUrl ? actions.isValidUrl(service.linkUrl) : true;
                     const isHovered = data.hoveredItemId === service.id;
                     
                     const serviceContent = (
                         <div 
-                            className={`w-18 lg:w-24 text-center space-y-1 lg:space-y-2 transition-transform duration-300 ${
+                            className={`w-20 lg:w-28 text-center space-y-2 lg:space-y-3 transition-transform duration-300 ${
                                 isHovered ? 'transform scale-110' : ''
                             }`}
                         >

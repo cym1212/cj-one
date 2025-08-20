@@ -1,0 +1,30 @@
+/* MDRecommend 컴포넌트 스타일 - Tailwind CDN 사용으로 기본 스타일만 포함 */
+
+/* 기본 컨테이너 스타일 */
+.md-recommend-component {
+    /* Tailwind로 대부분 처리하므로 필요시에만 추가 */
+}
+
+/* 상품 카드 기본 스타일 */
+.md-recommend-product-card {
+    /* Tailwind 클래스로 대부분 처리됨 */
+}
+
+/* 글로벌 래퍼 스타일 (poj2 프로젝트 공통) */
+.poj2-global-wrapper {
+    /* 기본 패딩과 레이아웃은 Tailwind 클래스로 처리 */
+}
+
+/* MD 추천 그리드 스타일 */
+.poj2-md-recommend {
+    /* 그리드 레이아웃은 Tailwind 클래스로 처리 */
+}
+
+/* 반응형 처리는 Tailwind 클래스 사용 */
+@media (max-width: 768px) {
+    .poj2-md-recommend {
+        /* 모바일 스타일은 Tailwind의 md: 접두사로 처리 */
+    }
+}
+
+/* 호버 효과 등은 Tailwind 클래스로 처리 */
