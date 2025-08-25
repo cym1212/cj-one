@@ -235,6 +235,7 @@ interface QuickMenuData {
 
 interface QuickMenuActions {
     handleItemClick: (item: any) => void;
+    handleProductClick?: (product: any) => void;  // 추가
     // Redux fetchProducts 액션 (문서 기준)
     fetchProducts?: (params: {
         category_id?: number;
@@ -441,11 +442,11 @@ function CategorySlider({
             >
                 {categoryChunks.map((chunk, chunkIndex) => (
                     <SwiperSlide key={chunkIndex} className="!w-full">
-                        <div className="flex sm:justify-center gap-3 lg:gap-5">
+                        <div className="flex sm:justify-center gap-4 lg:gap-6">
                             {chunk.map((category) => (
                                 <button
                                     key={category.id}
-                                    className="flex flex-col items-center space-y-1 max-sm:w-[18%] w-[60px]"
+                                    className="flex flex-col items-center space-y-2 max-sm:w-[20%] w-[75px]"
                                     onClick={() => handleCategoryClick(category.id, category)}
                                 >
                                     <div className={`flex items-center justify-center aspect-square w-full rounded-full overflow-hidden border transition-colors ${
@@ -457,10 +458,10 @@ function CategorySlider({
                                         <img
                                             src={category.icon}
                                             alt={category.name}
-                                            className="h-[50%] object-cover"
+                                            className="h-[60%] object-cover"
                                         />
                                     </div>
-                                    <p className="text-[10px] lg:text-xs">{category.name}</p>
+                                    <p className="text-xs lg:text-sm">{category.name}</p>
                                 </button>
                             ))}
                         </div>
@@ -498,7 +499,7 @@ function ProductCard({
 }: { 
     data: Product; 
     visibleLikeButton?: boolean;
-    actions?: QuickMenuActions;
+    actions?: any;
     utils?: ComponentSkinProps['utils'];
 }) {
     const { id, type, title, brand, price, thumbnails, discount, purchases, flags, benefits, stars, reviews } = data;
@@ -506,17 +507,14 @@ function ProductCard({
     const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
     };
-    
-    const handleProductClick = () => {
-        const productUrl = `/product/${id}`;
-        if (utils?.navigate) {
-            utils.navigate(productUrl);
-        }
-    };
 
     return (
         <div className="poj2-product-card">
-            <div className="block cursor-pointer" onClick={handleProductClick}>
+            <div className="block cursor-pointer" onClick={() => {
+                if (actions?.handleProductClick) {
+                    actions.handleProductClick(data);
+                }
+            }}>
                 <div className="poj2-product-card-thumb relative">
                     <Thumbnail
                         title={title}
@@ -856,11 +854,38 @@ function CategoryRankingComponent(props: CategoryRankingProps = {}) {
     
     // finalActions를 useMemo로 메모이제이션하여 무한 렌더링 방지
     const finalActions = useMemo(() => {
-        return hasExternalActions ? actions : {
+        if (hasExternalActions) {
+            // 외부 actions가 있으면 handleProductClick이 없어도 기본 동작 추가
+            return {
+                ...actions,
+                handleProductClick: actions?.handleProductClick || ((product: any) => {
+                    // 상품 클릭 시 상품 상세 페이지로 이동
+                    const productUrl = `/products/${product.id}`;
+                    if (sanitizedProps.utils?.navigate) {
+                        sanitizedProps.utils.navigate(productUrl);
+                    } else {
+                        window.location.href = productUrl;
+                    }
+                })
+            };
+        }
+        
+        // 기본 actions 구현
+        return {
             handleItemClick: (item: any) => {
+                console.log('Default handleItemClick:', item);
+            },
+            handleProductClick: (product: any) => {
+                // 상품 클릭 시 상품 상세 페이지로 이동
+                const productUrl = `/products/${product.id}`;
+                if (sanitizedProps.utils?.navigate) {
+                    sanitizedProps.utils.navigate(productUrl);
+                } else {
+                    window.location.href = productUrl;
+                }
             }
         };
-    }, [hasExternalActions, actions]);
+    }, [hasExternalActions, actions, sanitizedProps.utils]);
 
     // 초기 로드 제거 - 웹빌더가 알아서 초기 로드 처리
     // useEffect는 제거됨
@@ -873,8 +898,8 @@ function CategoryRankingComponent(props: CategoryRankingProps = {}) {
             script.async = true;
             script.onload = () => {
                 // Tailwind config 추가
-                if (window.tailwind) {
-                    window.tailwind.config = {
+                if ((window as any).tailwind) {
+                    (window as any).tailwind.config = {
                         theme: {
                             extend: {
                                 scale: {
@@ -890,9 +915,9 @@ function CategoryRankingComponent(props: CategoryRankingProps = {}) {
     }, []);
 
     return (
-        <div className={`pb-15 lg:pb-30 ${sanitizedProps.className || ''}`} style={sanitizedProps.style}>
+        <div className={`relative pb-15 lg:pb-30 ${sanitizedProps.className || ''}`} style={sanitizedProps.style}>
             <HomeSectionTitle title={title} />
-            <div className="z-2 sticky top-0 h-fit py-3 mb-4 lg:mb-7 bg-white">
+            <div className="sticky top-0 z-20 bg-white py-3 mb-4 lg:mb-7">
                 <CategorySlider 
                     data={categories}
                     displayItems={sanitizedProps.data?.displayItems}  // 원본 displayItems 전달

@@ -53,6 +53,7 @@ interface RecommendServiceData {
     title?: string;
     subtitle?: string;
     headingText?: string; // 속성 패널에서 사용되는 제목 (title로 매핑됨)
+    titleAlignment?: 'left' | 'center' | 'right'; // 제목 정렬 방식
     services?: RecommendServiceItem[];  // TrendingItems의 items에 해당
     
     // 표시 설정
@@ -174,6 +175,7 @@ function RecommendServiceComponent(props: RecommendServiceProps = {}) {
         services: extractServices(props.data),
         title: props.data.title || props.data.headingText || props.data.props?.title || props.data.props?.headingText || props.data.componentProps?.title || 'CJ온스타일 추천 서비스', // headingText 지원
         subtitle: props.data.subtitle || props.data.props?.subtitle || props.data.componentProps?.subtitle || '에디터가 선정한',
+        titleAlignment: props.data.titleAlignment || props.data.props?.titleAlignment || props.data.componentProps?.titleAlignment || 'left', // 기본값: left
         className: props.data.className || 'recommend-service-component', // 기본 className 설정
         hoveredItemId: props.data.hoveredItemId || null,
         is_logged: props.data.is_logged !== undefined ? props.data.is_logged : true,
@@ -182,6 +184,7 @@ function RecommendServiceComponent(props: RecommendServiceProps = {}) {
         id: 'recommend-service',
         title: props.title || 'CJ온스타일 추천 서비스',
         subtitle: props.subtitle || '에디터가 선정한',
+        titleAlignment: 'left', // 기본값: left
         services: (props.services && props.services.length > 0) ? props.services : DEFAULT_SERVICES,
         className: props.className || 'recommend-service-component', // 기본 className 설정
         style: props.style,
@@ -267,7 +270,7 @@ function RecommendServiceComponent(props: RecommendServiceProps = {}) {
         >
             {/* 헤더 영역 */}
             {(data.title || data.subtitle) && (
-                <div className="text-center mb-8 lg:mb-12">
+                <div className="mb-8 lg:mb-12" style={{ textAlign: data.titleAlignment || 'left' }}>
                     {data.subtitle && (
                         <p className="text-sm lg:text-base text-gray-600 mb-2">
                             {actions.translate ? actions.translate(data.subtitle) : data.subtitle}
