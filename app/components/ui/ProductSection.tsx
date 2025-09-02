@@ -510,7 +510,7 @@ function PriceInfo({ product, brand, title }: { product: Product; brand?: string
     return (
         <div>
             <h3 className="text-sm lg:text-lg leading-sm">
-                {brand && <span className="pr-1 font-bold">{brand}</span>}
+                {/*{brand && <span className="pr-1 font-bold">{brand}</span>}*/}
                 {title}
             </h3>
             <div className="my-1">
