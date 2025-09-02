@@ -96,6 +96,10 @@ interface Product {
     benefits?: Array<{ type: string; value: string }>;
     likes?: number;
     stock?: number;
+    
+    // 실시간 인기도 지표 추가
+    realtimeViewers?: number; // 현재 상품을 보고 있는 사용자 수
+    wishlistCount?: number; // 상품을 찜한 총 사용자 수
 }
 
 // ProductListData 인터페이스 (API 문서 기준)
@@ -208,7 +212,9 @@ const DEFAULT_PRODUCTS: Product[] = [
             { type: 'coupon', value: '10% 추가할인' },
             { type: 'card', value: '5% 청구할인' }
         ],
-        likes: 234
+        likes: 234,
+        realtimeViewers: 15,
+        wishlistCount: 234
     },
     {
         id: 2,
@@ -240,7 +246,9 @@ const DEFAULT_PRODUCTS: Product[] = [
         benefits: [
             { type: 'coupon', value: '15% 할인쿠폰' }
         ],
-        likes: 567
+        likes: 567,
+        realtimeViewers: 23,
+        wishlistCount: 567
     },
     {
         id: 3,
@@ -270,7 +278,9 @@ const DEFAULT_PRODUCTS: Product[] = [
         benefits: [
             { type: 'card', value: '12개월 무이자' }
         ],
-        likes: 123
+        likes: 123,
+        realtimeViewers: 8,
+        wishlistCount: 123
     },
     {
         id: 4,
@@ -300,7 +310,9 @@ const DEFAULT_PRODUCTS: Product[] = [
             { type: 'coupon', value: '20% 추가할인' },
             { type: 'card', value: '6개월 무이자' }
         ],
-        likes: 789
+        likes: 789,
+        realtimeViewers: 42,
+        wishlistCount: 789
     }
 ];
 
@@ -340,28 +352,50 @@ const PeopleIcon = ({ tailwind }: { tailwind?: string }) => (
     </svg>
 );
 
-const StarIcon = ({ tailwind }: { tailwind?: string }) => (
-    <svg className={tailwind} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-    </svg>
-);
 
-// RollingText 컴포넌트 간단 구현
-const RollingText = ({ children }: { children: React.ReactNode }) => (
-    <div className="relative h-full overflow-hidden">
-        {children}
-    </div>
-);
+// RollingText 컴포넌트 - 실제 작동하는 롤링 애니메이션
+function RollingText({ children }: { children: React.ReactElement[] }) {
+    const [currentIndex, setCurrentIndex] = React.useState(0);
+
+    React.useEffect(() => {
+        if (children.length <= 1) return;
+
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % children.length);
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [children.length]);
+
+    return (
+        <div className="flex-1 relative h-5 overflow-hidden">
+            {children.map((child, index) => (
+                <div
+                    key={index}
+                    style={{
+                        position: 'absolute',
+                        width: '100%',
+                        transform: `translateY(${index === currentIndex ? '0%' : '100%'})`,
+                        opacity: index === currentIndex ? 1 : 0,
+                        transition: 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out'
+                    }}
+                >
+                    {React.cloneElement(child, {
+                        'data-rolling-item': true
+                    })}
+                </div>
+            ))}
+        </div>
+    );
+}
 
 // ProductCard 컴포넌트 (기존 디자인 유지, API 데이터 구조만 적용)
 function ProductCard({ 
     product, 
-    data, 
     actions, 
     activeRollingText = true
 }: { 
     product: Product; 
-    data: ProductListData; 
     actions: ProductListActions;
     activeRollingText?: boolean;
 }) {
@@ -381,13 +415,8 @@ function ProductCard({
     const thumbnails = getThumbnails();
     const title = product.title || product.name || '';
     const brand = product.brand;
-    const price = product.config?.discounted_price || product.config?.default_price || product.price;
-    const originalPrice = product.config?.default_price || product.originalPrice;
-    const discount = product.discount || (originalPrice && price ? Math.round((1 - price / originalPrice) * 100) : 0);
-    const purchases = product.purchases;
     const flags = product.flags;
     const benefits = product.benefits;
-    const likes = product.likes;
 
     return (
         <div 
@@ -401,16 +430,20 @@ function ProductCard({
                     thumbnails={thumbnails}
                     tagImage={undefined}
                 />
-                {activeRollingText && likes && (
-                    <div className="absolute left-0 bottom-0 flex items-center w-full h-8 lg:h-10 px-4 lg:px-5 bg-black/50">
+                {(activeRollingText && ((product.wishlistCount && product.wishlistCount > 0) || (product.realtimeViewers && product.realtimeViewers > 0))) ? (
+                    <div className="absolute left-0 bottom-0 flex items-center w-full h-7 lg:h-10 px-3 lg:px-5 bg-black/50">
                         <RollingText>
                             <div className="absolute flex items-center gap-1 lg:gap-2">
-                                <LikeIcon tailwind="w-4 h-4 lg:w-6 lg:h-6 fill-white" />
-                                <p className="text-white text-sm lg:text-base">{likes}명이 찜한 상품이에요</p>
+                                <LikeIcon tailwind="w-3 h-3 lg:w-6 lg:h-6 fill-white" />
+                                <p className="text-white text-xs lg:text-base">{product.wishlistCount || 0}명이 찜한 상품이에요</p>
+                            </div>
+                            <div className="absolute flex items-center gap-1 lg:gap-2">
+                                <PeopleIcon tailwind="w-3 h-3 lg:w-6 lg:h-6 fill-white" />
+                                <p className="text-white text-xs lg:text-base">지금 {product.realtimeViewers || 0}명이 이 상품을 보고있어요</p>
                             </div>
                         </RollingText>
                     </div>
-                )}
+                ) : null}
             </div>
             <div className="poj2-product-card-info pt-3">
                 <PriceInfo
@@ -468,7 +501,7 @@ function Thumbnail({ title, brand, thumbnails, tagImage }: { title: string; thum
 
 function PriceInfo({ product, brand, title }: { product: Product; brand?: string; title: string }) {
     // API 데이터 구조에서 가격 정보 추출
-    const price = product.price;
+    const price = product.price || 0;
     const originalPrice = product.originalPrice;
     const hasDiscount = product.hasLevelPrice || (originalPrice && originalPrice > price);
     const discount = hasDiscount && originalPrice ? Math.round((1 - price / originalPrice) * 100) : product.discount;
@@ -495,16 +528,16 @@ function PriceInfo({ product, brand, title }: { product: Product; brand?: string
                             <span>원</span>
                         </p>
                     </div>
-                    {purchases && <p className="text-xs text-description">{purchases.toLocaleString()} 구매</p>}
+                    {purchases ? <p className="text-xs text-description">{purchases.toLocaleString()} 구매</p> : null}
                 </div>
                 {/* 등급 할인 표시 */}
-                {product.hasLevelPrice && product.levelName && (
+                {product.hasLevelPrice && product.levelName ? (
                     <p className="text-xs text-blue-600 mt-1">{product.levelName}</p>
-                )}
+                ) : null}
                 {/* PV 표시 */}
-                {product.pv > 0 && (
+                {product.pv && product.pv > 0 ? (
                     <p className="text-xs text-gray-600 mt-1">PV: {product.pv}</p>
-                )}
+                ) : null}
             </div>
         </div>
     );
@@ -548,7 +581,6 @@ function ProductSectionComponent(props: ProductSectionProps = {}) {
     const hasExternalData = !!props.data;
     const hasExternalActions = !!props.actions;
     const initialProducts = props.data?.products || props.initialProducts || DEFAULT_PRODUCTS;
-    const mode = props.mode || 'production';
     
     // 내부 상태 관리
     const loadMoreButtonRef = useRef<HTMLButtonElement>(null);
@@ -557,7 +589,7 @@ function ProductSectionComponent(props: ProductSectionProps = {}) {
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState('created');
     const [sortOrder, setSortOrder] = useState('desc');
-    const [loading, setLoading] = useState(false);
+    const [loading] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [mobileProducts, setMobileProducts] = useState<Product[]>([]);
@@ -686,8 +718,8 @@ function ProductSectionComponent(props: ProductSectionProps = {}) {
             
             // Tailwind 설정 추가
             script.onload = () => {
-                if (window.tailwind) {
-                    window.tailwind.config = {
+                if ((window as any).tailwind) {
+                    (window as any).tailwind.config = {
                         corePlugins: {
                             preflight: false // 기본 스타일 리셋 비활성화
                         }
@@ -706,12 +738,9 @@ function ProductSectionComponent(props: ProductSectionProps = {}) {
         );
     }
 
-    // 선택한 상품만 표시 (페이지네이션 없음)
-    const displayProducts = initialProducts;
-
     return (
         <div className={`pb-15 lg:pb-30 ${props.className || ''}`} style={props.style}>
-            {/* 초기 레이아웃 안정성을 위한 스타일 */}
+            {/* 초기 레이아웃 안정성을 위한 스타일 + 롤링 애니메이션 */}
             <style>{`
                 .poj2-product-card {
                     contain: layout;
@@ -723,15 +752,21 @@ function ProductSectionComponent(props: ProductSectionProps = {}) {
                 .poj2-image-box img {
                     will-change: transform;
                 }
+                @keyframes rolling {
+                    0% { transform: translateY(0); }
+                    33% { transform: translateY(0); }
+                    50% { transform: translateY(-40px); }
+                    83% { transform: translateY(-40px); }
+                    100% { transform: translateY(-80px); }
+                }
             `}</style>
             
             {/* 상품 그리드 - 기존 디자인 그대로 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-5 gap-y-8 lg:gap-y-10">
-                {displayProducts.map((product) => (
+                {initialProducts.map((product) => (
                     <ProductCard
                         key={product.id}
                         product={product}
-                        data={data}
                         actions={actions}
                         activeRollingText
                     />
